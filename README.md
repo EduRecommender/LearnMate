@@ -3,7 +3,13 @@
 ## **AI-Powered Learning Assistant**
 
 ### **Team Name:** LearnMate
-### **Team Members:** [Insert Names & Roles]
+### **Team Members:** 
+- Sebastian Perilla
+- Ismael Picazo
+- Farah Orfaly
+- Daniel Mora
+- Riley Martin
+- Noah Schiek
 
 ---
 
