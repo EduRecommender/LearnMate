@@ -5,7 +5,7 @@ on:
       - main
   push:
     branches:
-      - Riley-CD/CI-Integration
+      - main
 jobs:
   train:
     runs-on: ubuntu-latest
