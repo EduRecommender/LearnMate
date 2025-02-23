@@ -5,13 +5,20 @@ mlflow.set_tracking_uri("sqlite:///mlflow.db")
 
 def get_best_model():
     
+    """Gets the best model from the currently trained models, based on NDCG@K
+    
+    Returns:
+        run_id (string) : Run ID of best model
+        ndcg (double) : NDCG score of best model
+    """
+
     client = MlflowClient()
 
     experiment = client.get_experiment_by_name("learnmate_recommendations")
     if experiment is None:
         raise ValueError("Experiment 'learnmate_recommendations' does not exist. Please ensure it is created.")
 
-    runs = client.search_runs(experiment.experiment_id, order_by=["metrics.ndcg DESC"])
+    runs = client.search_runs(experiment.experiment_id, order_by=["metrics.ndcgk DESC"])
     
     if not runs:
         raise ValueError("No runs found in the experiment.")
