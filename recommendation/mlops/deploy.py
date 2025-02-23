@@ -1,4 +1,3 @@
-# recommendation/mlops/deployment/deploy.py
 import mlflow
 from mlflow.tracking import MlflowClient
 

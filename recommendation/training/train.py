@@ -25,8 +25,13 @@ def train_and_log_models():
         module = importlib.import_module(module_path)
         model_class = getattr(module, model_name)
         model = model_class()
+        model.load_data()
         model.train()
-        model.log_model()
+        model.load_test_data()
+
+        # Evalute the model and log the results
+        eval_results = model.evaluate()
+        model.log_model(evaluation_results=eval_results)
 
 if __name__ == "__main__":
     train_and_log_models()
