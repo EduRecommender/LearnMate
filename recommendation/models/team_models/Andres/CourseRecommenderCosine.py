@@ -19,7 +19,7 @@ class CourseRecommenderCosine(BaseRecommender):
 
         """
         # Load the training data (e.g., course descriptions)
-        data_path = os.path.join("data", "EdX.csv")
+        data_path = os.path.join("raw_data", "EdX.csv")
         self.data = pd.read_csv(data_path)
         
         # Preprocess the data (e.g., normalize text, combine features)
