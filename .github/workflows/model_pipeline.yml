@@ -1,4 +1,3 @@
-# .github/workflows/model_pipeline.yml
 name: Model Pipeline
 on:
   pull_request:
@@ -19,6 +18,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Train and log all models
-        run: python -m recommendation.training.train_all
+        run: python -m recommendation.training.train
       - name: Deploy best model
         run: python -m recommendation.mlops.deployment.deploy
