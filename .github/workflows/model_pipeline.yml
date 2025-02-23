@@ -1,9 +1,12 @@
 # .github/workflows/model_pipeline.yml
 name: Model Pipeline
 on:
-  push:
+  pull_request:
     branches:
       - main
+  push:
+    branches:
+      - Riley-CD/CI-Integration
 jobs:
   train:
     runs-on: ubuntu-latest
