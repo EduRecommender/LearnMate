@@ -25,7 +25,7 @@ def get_best_model():
     
     # Get the best run
     best_run = runs[0]
-    return best_run.info.run_id, best_run.data.metrics["ndcg"]
+    return best_run.info.run_id, best_run.data.metrics["ndcgk"]
 
 def deploy_model(run_id):
     """Deploy the model. This is a skeleton function but we can configure it once we decide on a deployment platform.
