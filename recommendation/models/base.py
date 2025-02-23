@@ -47,19 +47,19 @@ class BaseRecommender(ABC):
         """
         pass
 
-def log_model(self, evaluation_results=None):
-    """Log the model and evaluation results to MLflow."""
-    if not self.is_trained:
-        raise ValueError("Model must be trained before logging")
-        
-    with mlflow.start_run(run_name=f"{self.model_name}_{self.version}"):
-        mlflow.sklearn.log_model(
-            self,
-            f"{self.model_name}_{self.version}",
-            registered_model_name=self.model_name
-        )
-        
-        # Log evaluation metrics if provided
-        if evaluation_results:
-            for metric, value in evaluation_results.items():
-                mlflow.log_metric(metric, value)
+    def log_model(self, evaluation_results=None):
+        """Log the model and evaluation results to MLflow."""
+        if not self.is_trained:
+            raise ValueError("Model must be trained before logging")
+            
+        with mlflow.start_run(run_name=f"{self.model_name}_{self.version}"):
+            mlflow.sklearn.log_model(
+                self,
+                f"{self.model_name}_{self.version}",
+                registered_model_name=self.model_name
+            )
+            
+            # Log evaluation metrics if provided
+            if evaluation_results:
+                for metric, value in evaluation_results.items():
+                    mlflow.log_metric(metric, value)
