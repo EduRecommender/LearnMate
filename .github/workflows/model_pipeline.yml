@@ -20,4 +20,4 @@ jobs:
       - name: Train and log all models
         run: python -m recommendation.training.train
       - name: Deploy best model
-        run: python -m recommendation.mlops.deployment.deploy
+        run: python -m recommendation.mlops.deploy
