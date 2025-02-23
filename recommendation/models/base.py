@@ -43,7 +43,7 @@ class BaseRecommender(ABC):
             top_k (int): The number of recommendations to consider for evaluation.
         
         Returns:
-            dict: A dictionary containing evaluation metrics (e.g., precision@k, recall@k, NDCG@k).
+            dict: A dictionary containing evaluation metrics (e.g., precisionk, recallk, NDCGk).
         """
         pass
 

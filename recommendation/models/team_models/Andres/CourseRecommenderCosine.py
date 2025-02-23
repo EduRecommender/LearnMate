@@ -80,9 +80,9 @@ class CourseRecommenderCosine(BaseRecommender):
             ndcg_scores.append(ndcg)
         
         return {
-            'precision@k': np.mean(precision_scores),
-            'recall@k': np.mean(recall_scores),
-            'ndcg@k': np.mean(ndcg_scores)
+            'precisionk': np.mean(precision_scores),
+            'recallk': np.mean(recall_scores),
+            'ndcgk': np.mean(ndcg_scores)
         }
     
     def train(self):
