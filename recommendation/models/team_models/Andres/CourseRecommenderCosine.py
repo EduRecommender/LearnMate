@@ -19,7 +19,7 @@ class CourseRecommenderCosine(BaseRecommender):
 
         """
         # Load the training data (e.g., course descriptions)
-        data_path = os.path.join("raw_data", "EdX.csv")
+        data_path = os.path.join("input_data", "kaggle_filtered_courses.csv")
         self.data = pd.read_csv(data_path)
         
         # Preprocess the data (e.g., normalize text, combine features)
@@ -62,7 +62,7 @@ class CourseRecommenderCosine(BaseRecommender):
             ground_truth = row['ground_truth']
             
             # Get recommendations
-            recommendations = self.predict(query, top_k)
+            recommendations = self.predict(query, top_k, print_output=False) # Disable printing in evaluate
             recommended_indices = recommendations.index.tolist()
             
             # Compute precision@k and recall@k
@@ -94,13 +94,14 @@ class CourseRecommenderCosine(BaseRecommender):
         self.cosine_sim = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
         self.is_trained = True
 
-    def predict(self, user_input, top_k=5):
+    def predict(self, user_input, top_k=5, print_output=True):
         """
         Recommend courses based on user input.
         
         Args:
             user_input (str): The user's input query.
             top_k (int): Number of recommendations to return.
+            print_output (bool): Whether to print the recommendations.
         
         Returns:
             pd.DataFrame: A DataFrame containing the recommended courses.
@@ -118,4 +119,10 @@ class CourseRecommenderCosine(BaseRecommender):
         similar_indices = user_cosine_sim[0].argsort()[-top_k:][::-1]
         
         # Return the recommended courses
-        return self.data.iloc[similar_indices]
+        recommendations =  self.data.iloc[similar_indices].copy() # Use .copy() to avoid SettingWithCopyWarning
+        recommendations['Category'] = recommendations['Category'].astype(str)
+        
+        if print_output:
+            print(recommendations[['Name', 'University', 'Link', 'Category']])
+        
+        return recommendations
