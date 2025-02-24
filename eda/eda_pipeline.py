@@ -1,8 +1,13 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
+
+import os
+os.system("pip install seaborn==0.13.2")
+
+import seaborn as sns
+
 
 # Streamlit Page Configuration
 st.set_page_config(page_title="Kaggle Courses EDA", layout="wide")
