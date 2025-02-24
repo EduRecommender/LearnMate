@@ -17,10 +17,26 @@ st.title("📊 Kaggle Dataset Exploratory Data Analysis")
 # Load the dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv("../input_data/kaggle_filtered_courses.csv")
-    return df
+    # Get the directory where eda_pipeline.py is located (i.e., /LearnMate/eda/)
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+    # Navigate one level up to reach the project root (i.e., /LearnMate/)
+    PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
+    # Construct the full path to the CSV file inside input_data/
+    file_path = os.path.join(PROJECT_ROOT, "input_data", "kaggle_filtered_courses.csv")
+
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        st.error(f"❌ File not found: {file_path}")
+        return pd.DataFrame()  # Return an empty DataFrame to avoid crashes
+
+    # Load and return the dataset
+    return pd.read_csv(file_path)
+
+# Load data into a DataFrame
 kaggle_df = load_data()
+
 
 
 # Drop the description column for better viewing
@@ -85,11 +101,16 @@ st.plotly_chart(fig)
 
 # Value Counts for Course Categories
 st.subheader("📚 Course Category Breakdown")
-category_counts = kaggle_df["Category"].value_counts()
-fig, ax = plt.subplots(figsize=(8, 4))
-sns.barplot(x=category_counts.index, y=category_counts.values, palette="viridis", ax=ax)
-plt.xticks(rotation=45)
-st.pyplot(fig)
+category_counts = kaggle_df["Category"].value_counts().reset_index()
+
+fig = px.bar(category_counts, 
+             x="index", 
+             y="Category", 
+             title="Course Category Distribution", 
+             labels={"index": "Category", "Category": "Number of Courses"},
+             color="index")
+
+st.plotly_chart(fig)
 
 
 
