@@ -1,4 +1,4 @@
-from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
+from recommendation.models.team_models.Andres.CourseRecommender2 import CourseRecommenderCosine
 import pandas as pd
 
 recommender = CourseRecommenderCosine()
