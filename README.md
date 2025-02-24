@@ -1,4 +1,14 @@
-# LearnMate 
+# LearnMate
+
+### Run:
+```
+pip install -r requirements.txt
+```
+
+### Run on Streamlit 
+```
+streamlit run home.py
+```
 
 ## **AI-Powered Learning Assistant**
 
