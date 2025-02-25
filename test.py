@@ -1,7 +1,7 @@
-from recommendation.models.team_models.Andres.CourseRecommender2 import CourseRecommenderCosine
+from recommendation.models.team_models.Andres.CourseRecommender2 import CourseRecommender2
 import pandas as pd
 
-recommender = CourseRecommenderCosine()
+recommender = CourseRecommender2()
 recommender.load_data()
 recommender.train()
 recommender.load_test_data()
