@@ -81,14 +81,14 @@ with st.expander("View Dataframe"):
 #### University and Course Count
 
 # University and Category Count occurrences
-category_counts = kaggle_df.groupby(["University", "Category"]).size().reset_index(name="Course Count")
+category_counts = kaggle_df.groupby(["University", "Category"]).size()
 
 # Interactive Plotly Chart: University vs. Category
 st.subheader("📉 University vs. Course Category: Expand graph for full visualization")
 
 fig = px.bar(category_counts, 
              x="University", 
-             y="Course Count", 
+             y="Category", 
              color="Category", 
              text="Course Count",
              title="Number of Courses Offered per University by Category",
