@@ -17,26 +17,16 @@ st.title("📊 Kaggle Dataset Exploratory Data Analysis")
 # Load the dataset
 @st.cache_data
 def load_data():
-    # Get the directory where eda_pipeline.py is located (i.e., /LearnMate/eda/)
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # Navigate one level up to reach the project root (i.e., /LearnMate/)
-    PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-
-    # Construct the full path to the CSV file inside input_data/
-    file_path = os.path.join(PROJECT_ROOT, "input_data", "kaggle_filtered_courses.csv")
-
-    # Check if the file exists
+    file_path = os.path.join(os.path.dirname(__file__), "../input_data/kaggle_filtered_courses.csv")
+    
     if not os.path.exists(file_path):
         st.error(f"❌ File not found: {file_path}")
-        return pd.DataFrame()  # Return an empty DataFrame to avoid crashes
+        return pd.DataFrame()  # Return empty DataFrame to avoid crashes
 
-    # Load and return the dataset
     return pd.read_csv(file_path)
 
-# Load data into a DataFrame
-kaggle_df = load_data()
 
+kaggle_df = load_data()
 
 
 # Drop the description column for better viewing
@@ -81,14 +71,14 @@ with st.expander("View Dataframe"):
 #### University and Course Count
 
 # University and Category Count occurrences
-category_counts = kaggle_df.groupby(["University", "Category"]).size()
+category_counts = kaggle_df.groupby(["University", "Category"]).size().reset_index(name="Course Count")
 
 # Interactive Plotly Chart: University vs. Category
 st.subheader("📉 University vs. Course Category: Expand graph for full visualization")
 
 fig = px.bar(category_counts, 
              x="University", 
-             y="Category", 
+             y="Course Count", 
              color="Category", 
              text="Course Count",
              title="Number of Courses Offered per University by Category",
