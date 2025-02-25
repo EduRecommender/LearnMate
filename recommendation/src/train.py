@@ -5,6 +5,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import ndcg_score
 from azureml.core import Model
+import joblib
+from azure_utils import get_workspace
 
 # Load and preprocess the training data
 def load_data():
@@ -32,6 +34,26 @@ def load_test_data():
         ]
     })
     return test_data
+
+# Train the TF-IDF vectorizer and compute the cosine similarity matrix
+def train(data):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(data['combined_features'])
+    return vectorizer, tfidf_matrix
+
+# Recommend courses based on user input
+def predict(user_input, data, vectorizer, tfidf_matrix, top_k=5, print_output=True):
+    user_input = user_input.lower()
+    user_tfidf = vectorizer.transform([user_input])
+    user_cosine_sim = cosine_similarity(user_tfidf, tfidf_matrix)
+    similar_indices = user_cosine_sim[0].argsort()[-top_k:][::-1]
+    recommendations = data.iloc[similar_indices].copy()
+    recommendations['Category'] = recommendations['Category'].astype(str)
+    
+    if print_output:
+        print(recommendations[['Name', 'University', 'Link', 'Category']])
+    
+    return recommendations
 
 # Evaluate the model
 def evaluate(test_data, data, vectorizer, tfidf_matrix, top_k=5):
@@ -67,28 +89,9 @@ def evaluate(test_data, data, vectorizer, tfidf_matrix, top_k=5):
         'ndcgk': np.mean(ndcg_scores)
     }
 
-# Train the TF-IDF vectorizer and compute the cosine similarity matrix
-def train(data):
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(data['combined_features'])
-    return vectorizer, tfidf_matrix
-
-# Recommend courses based on user input
-def predict(user_input, data, vectorizer, tfidf_matrix, top_k=5, print_output=True):
-    user_input = user_input.lower()
-    user_tfidf = vectorizer.transform([user_input])
-    user_cosine_sim = cosine_similarity(user_tfidf, tfidf_matrix)
-    similar_indices = user_cosine_sim[0].argsort()[-top_k:][::-1]
-    recommendations = data.iloc[similar_indices].copy()
-    recommendations['Category'] = recommendations['Category'].astype(str)
-    
-    if print_output:
-        print(recommendations[['Name', 'University', 'Link', 'Category']])
-    
-    return recommendations
-
 # Main function to run the training and evaluation
 def main():
+
     # Load data
     data = load_data()
     test_data = load_test_data()
@@ -100,10 +103,14 @@ def main():
     evaluation_results = evaluate(test_data, data, vectorizer, tfidf_matrix)
     print("Evaluation Results:", evaluation_results)
     
+    # Save the model (e.g., using joblib or pickle)
+    model_path = os.path.join(os.getcwd(), "model.pkl")
+    joblib.dump((vectorizer, tfidf_matrix), model_path)
+    
     # Register the model with Azure ML
     workspace = get_workspace()
     model = Model.register(workspace=workspace,
-                           model_path="model.pkl",  # Assuming you save the model to this path
+                           model_path=model_path,
                            model_name="CourseRecommenderCosine",
                            tags={"evaluation": evaluation_results},
                            description="Course Recommender using Cosine Similarity")

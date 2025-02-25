@@ -1,0 +1,9 @@
+steps:
+  - name: TrainModel
+    script: src/train.py
+    compute: your-compute-cluster
+    environment:
+      conda_file: environment.yml
+    outputs:
+      model_output:
+        type: model

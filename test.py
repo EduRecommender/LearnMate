@@ -1,15 +1,8 @@
-from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
-import pandas as pd
+from recommendation.src.score import init, run
 
-recommender = CourseRecommenderCosine()
-recommender.load_data()
-recommender.train()
-recommender.load_test_data()
+# Initialize
+init()
 
-user_input = input("What do you want to learn?\n")
-print()
-recommendations = recommender.predict(user_input)
-#print("Recommended Courses:", recommendations[['Name', 'University', 'Link', 'Category']]) #moved to the model
-
-evaluation_results = recommender.evaluate()
-print("Evaluation Results:", evaluation_results)
+# Test with sample input
+input_data = '{"data": "I want to learn programming basics", "top_k": 5}'
+print(run(input_data))

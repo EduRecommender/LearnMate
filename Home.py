@@ -16,4 +16,4 @@ if st.button("Get Recommendations"):
     st.dataframe(recommendations[['Name', 'University', 'Link']])
     
     # evaluation_results = recommender.evaluate()
-    # st.write("Evaluation Results:", evaluation_zresults)z
+    # st.write("Evaluation Results:", evaluation_zresults)
