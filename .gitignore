@@ -20,12 +20,13 @@ wheels/
 *.egg
 
 # Virtual Environment
-venv/
+venv
 .env/
 .venv/
 env/
 ENV/
-
+.env
+venv/
 # MLflow
 mlruns/
 mlflow.db
@@ -52,4 +53,4 @@ logs/
 .kaggle/
 
 # Local Development
-*.local
+*.local.env
