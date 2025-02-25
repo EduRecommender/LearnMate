@@ -1,0 +1,23 @@
+name: Model Pipeline
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Train and log all models
+        run: python -m recommendation.training.train
+      - name: Deploy best model
+        run: python -m recommendation.mlops.deploy
