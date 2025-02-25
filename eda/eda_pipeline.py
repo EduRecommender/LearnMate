@@ -94,10 +94,10 @@ st.subheader("📚 Course Category Breakdown")
 category_counts = kaggle_df["Category"].value_counts().reset_index()
 
 fig = px.bar(category_counts, 
-             x="index", 
+             x="University", 
              y="Category", 
              title="Course Category Distribution", 
-             labels={"index": "Category", "Category": "Number of Courses"},
+             labels={"University": "Category", "Category": "Number of Courses"},
              color="index")
 
 st.plotly_chart(fig)
