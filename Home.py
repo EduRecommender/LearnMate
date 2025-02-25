@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from chatbot import get_course_recommendations
-from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
+from recommendation.models.team_models.Andres.CourseRecommender2 import CourseRecommender2
 
 # Load dataset to get available categories and difficulty levels
 @st.cache_data
@@ -32,7 +32,7 @@ if option == "AI Chatbot (GPT-4) from Database":
 
 if st.button("Get Recommendations"):
     if option == "Cosine Similarity Model":
-        recommender = CourseRecommenderCosine()
+        recommender = CourseRecommender2()
         recommender.load_data()
         recommender.train()
         recommender.load_test_data()

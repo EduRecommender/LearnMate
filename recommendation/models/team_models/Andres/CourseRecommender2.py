@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
 
-class CourseRecommenderCosine(BaseRecommender):
+class CourseRecommender2(BaseRecommender):
     def __init__(self):
         super().__init__("course_recommender")
         self.vectorizer = None
