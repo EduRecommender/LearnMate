@@ -106,7 +106,6 @@ fig = px.bar(category_counts,
              title="Course Category Distribution", 
              labels={"Category": "Course Category", "Count": "Number of Courses"},
              color="Category")  # Color bars by category for better visualization
-
 st.plotly_chart(fig)
 
 
