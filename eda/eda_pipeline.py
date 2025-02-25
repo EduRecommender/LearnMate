@@ -91,14 +91,21 @@ st.plotly_chart(fig)
 
 # Value Counts for Course Categories
 st.subheader("📚 Course Category Breakdown")
-category_counts = kaggle_df["Category"].value_counts().reset_index()
 
+# Compute category counts and rename columns correctly
+category_counts = kaggle_df["Category"].value_counts().reset_index()
+category_counts.columns = ["Category", "Count"]  # Rename columns
+
+# Debugging: Show the corrected DataFrame
+st.write("Category Counts DataFrame:", category_counts.head())
+
+# Create bar chart
 fig = px.bar(category_counts, 
-             x="University", 
-             y="Category", 
+             x="Category", 
+             y="Count", 
              title="Course Category Distribution", 
-             labels={"University": "Category", "Category": "Number of Courses"},
-             color="index")
+             labels={"Category": "Course Category", "Count": "Number of Courses"},
+             color="Category")  # Color bars by category for better visualization
 
 st.plotly_chart(fig)
 
