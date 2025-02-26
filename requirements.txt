@@ -90,3 +90,5 @@ zipp==3.21.0
 openai
 python-dotenv
 tiktoken
+yt_dlp
+youtube_transcript_api
