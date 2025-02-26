@@ -31,9 +31,9 @@ def summarize_text(text, max_words=20):
     words = text.split()
     return " ".join(words[:max_words]) + "..." if len(words) > max_words else text
 
-def get_course_recommendations(user_input, difficulty, category):
+def chat_with_bot(user_input, difficulty, category, chat_history):
     """
-    Uses OpenAI to suggest courses based on user-selected difficulty and category.
+    Conversational chatbot that remembers past interactions.
     """
     # Filter dataset based on difficulty and category
     filtered_courses = courses[(courses["Difficulty Level"] == difficulty) & (courses["Category"] == category)]
@@ -45,23 +45,32 @@ def get_course_recommendations(user_input, difficulty, category):
     valid_columns = ["Name", "University", "Difficulty Level", "Link", "About", "Course Description", "Category"]
 
     # Summarize descriptions to save tokens
-    filtered_courses["Course Description"] = filtered_courses["Course Description"].astype(str).apply(lambda x: summarize_text(x, max_words=20))
+    filtered_courses = filtered_courses.copy()
+    filtered_courses.loc[:, "Course Description"] = filtered_courses["Course Description"].astype(str).apply(lambda x: summarize_text(x, max_words=20))
 
     # Select top 5 courses to reduce token usage
     filtered_courses = filtered_courses[valid_columns].head(5)
 
-    prompt = f"""
-    Based on the user's interest: '{user_input}', recommend the most relevant courses from the database.
+    # Format past messages for context
+    past_messages = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in chat_history])
 
-    Selected Filters:
+    prompt = f"""
+    You are an AI assistant helping users find the best courses.
+
+    User's selected filters:
     - Difficulty Level: {difficulty}
     - Category: {category}
 
-    Courses:
+    Previous conversation:
+    {past_messages}
+
+    Current User Message:
+    {user_input}
+
+    Relevant Courses:
     {filtered_courses.to_string(index=False)}
 
-    Provide the recommendations in the following structured format:
-    Course Name | University | Difficulty Level | Category | Course Link
+    Respond as a helpful chatbot, keeping the conversation natural.
     """
 
     response = client.chat.completions.create(

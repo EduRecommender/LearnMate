@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from chatbot import get_course_recommendations
-from recommendation.models.team_models.Andres.CourseRecommender2 import CourseRecommender2
+from chatbot import chat_with_bot
+from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
+
 
 # Load dataset to get available categories and difficulty levels
 @st.cache_data
@@ -12,17 +13,17 @@ courses = load_courses()
 
 st.title("LearnMate Course Recommender System")
 
-# User input for learning interest
-user_input = st.text_input("Enter your learning interest:", "I want to learn programming basics")
+# Initialize session state for chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Choose recommendation method
+# User selects recommendation method
 option = st.radio(
     "Choose Recommendation Method:",
-    ("AI Chatbot (GPT-4) from Database", "Cosine Similarity Model"),
+    ("Conversational AI Chatbot (GPT-4)", "Cosine Similarity Model"),
 )
 
-# If AI Chatbot is selected, require Difficulty Level & Category selection
-if option == "AI Chatbot (GPT-4) from Database":
+if option == "Conversational AI Chatbot (GPT-4)":
     # Ensure dropdowns only contain unique, sorted values from the dataset
     difficulty_levels = sorted(courses["Difficulty Level"].dropna().unique().tolist())
     categories = sorted(courses["Category"].dropna().unique().tolist())
@@ -30,9 +31,35 @@ if option == "AI Chatbot (GPT-4) from Database":
     difficulty = st.selectbox("Select Course Difficulty Level (Required):", difficulty_levels)
     category = st.selectbox("Select Course Category (Required):", categories)
 
-if st.button("Get Recommendations"):
-    if option == "Cosine Similarity Model":
-        recommender = CourseRecommender2()
+    # Display chat history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # User inputs a new message
+    user_input = st.chat_input("Ask me anything about courses...")
+
+    if user_input:
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": user_input})
+
+        # Get chatbot response
+        bot_response = chat_with_bot(user_input, difficulty, category, st.session_state.messages)
+
+        # Add bot response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": bot_response})
+
+        # Display bot response
+        with st.chat_message("assistant"):
+            st.markdown(bot_response)
+
+else:
+    # Standard Cosine Similarity Model
+    user_input = st.text_input("Enter your learning interest:", "I want to learn programming basics")
+
+    if st.button("Get Recommendations"):
+        recommender = CourseRecommenderCosine()
+
         recommender.load_data()
         recommender.train()
         recommender.load_test_data()
@@ -43,8 +70,3 @@ if st.button("Get Recommendations"):
             recommendations[['Name', 'University', 'Link', 'Category']],
             use_container_width=True
         )
-
-    else:
-        st.write("### Recommended Courses (AI Chatbot from Database):")
-        recommendations = get_course_recommendations(user_input, difficulty, category)
-        st.write(recommendations)
