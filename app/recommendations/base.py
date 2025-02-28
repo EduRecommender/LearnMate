@@ -18,13 +18,6 @@ class BaseRecommender(ABC):
         pass
 
     @abstractmethod
-    def load_test_data(self):
-        """
-        Load and preprocess the test data. Each model implements its own logic.
-        """
-        pass
-
-    @abstractmethod
     def train(self):
         """Train the model on the loaded data."""
         pass
@@ -34,21 +27,8 @@ class BaseRecommender(ABC):
         """Generate predictions for the given user data."""
         pass
 
-    @abstractmethod
-    def evaluate(self, top_k=5):
-        """
-        Evaluate the model using its own test data.
-        
-        Args:
-            top_k (int): The number of recommendations to consider for evaluation.
-        
-        Returns:
-            dict: A dictionary containing evaluation metrics (e.g., precisionk, recallk, NDCGk).
-        """
-        pass
-
     def log_model(self, evaluation_results=None):
-        """Log the model and evaluation results to MLflow."""
+        """Log the model to Azure ML."""
         if not self.is_trained:
             raise ValueError("Model must be trained before logging")
             
