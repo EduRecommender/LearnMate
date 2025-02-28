@@ -1,5 +1,5 @@
 import os
-from app.recommendations.base import BaseRecommender
+from recommendations.base import BaseRecommender
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd

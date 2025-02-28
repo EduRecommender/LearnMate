@@ -14,8 +14,9 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 # Dynamically locate the CSV file
-BASE_DIR = os.path.dirname(os.path.abspath(__))
-COURSES_FILE = os.path.join(BASE_DIR, "input_data", "kaggle_filtered_courses.csv")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
+COURSES_FILE = os.path.join(ROOT_DIR, "input_data", "kaggle_filtered_courses.csv")
 
 def load_courses():
     """Loads the course dataset dynamically."""

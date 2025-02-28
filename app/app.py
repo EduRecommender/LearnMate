@@ -1,13 +1,16 @@
+import os
 import streamlit as st
 import pandas as pd
 from chatbot.chatbot import chat_with_bot
-from recommendations.CourseRecommenderCosine import CourseRecommenderCosine as recommender_model
-
+from recommendations.CourseRecommender import CourseRecommender2 as RecommenderModel
 
 # Load dataset to get available categories and difficulty levels
 @st.cache_data
 def load_courses():
-    return pd.read_csv("../input_data/kaggle_filtered_courses.csv")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+    COURSES_FILE = os.path.join(ROOT_DIR, "input_data", "kaggle_filtered_courses.csv")
+    return pd.read_csv(COURSES_FILE)
 
 courses = load_courses()
 
@@ -58,7 +61,7 @@ else:
     user_input = st.text_input("Enter your learning interest:", "I want to learn programming basics")
 
     if st.button("Get Recommendations"):
-        recommender = recommender_model()
+        recommender = RecommenderModel()
 
         recommender.load_data()
         recommender.train()
