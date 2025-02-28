@@ -25,7 +25,6 @@ def load_data():
 
     return pd.read_csv(file_path)
 
-
 kaggle_df = load_data()
 
 
