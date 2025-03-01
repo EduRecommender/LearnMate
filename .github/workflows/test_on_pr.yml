@@ -37,9 +37,5 @@ jobs:
           echo "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "AZURE_RESOURCE_GROUP=${{ secrets.AZURE_RESOURCE_GROUP }}" >> $GITHUB_ENV
           echo "AZURE_WORKSPACE_NAME=${{ secrets.AZURE_WORKSPACE_NAME }}" >> $GITHUB_ENV
-      - name: List files in input_data directory
-        run: |
-          echo "Contents of input_data directory:"
-          ls -la input_data/
       - name: Run tests
         run: pytest tests/test_recommender.py -v --capture=no

@@ -1,4 +1,3 @@
-import pandas as pd
 from app.recommendations.CourseRecommender import CourseRecommender2 as Model
 
 def test_load_data():
