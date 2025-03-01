@@ -1,5 +1,5 @@
 import os
-from recommendations.base import BaseRecommender
+from .base import BaseRecommender
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
@@ -37,26 +37,6 @@ class CourseRecommender2(BaseRecommender):
         self.data['combined_features'] = (
             self.data['Name'] + ' ' + self.data['About'] + ' ' + self.data['Course Description'] + ' ' + self.data['Difficulty Level']
         )
-
-    def load_test_data(self):
-        """
-        Load and preprocess the test data.
-        These are just some random samples to use as an example so the results shouldn't be taken seriously.
-        """
-        # Define test queries and ground truth
-        self.test_data = pd.DataFrame({
-            'query': [
-                "I want to learn programming basics",
-                "I want to learn computer vision",
-                "I want to learn data science"
-            ],
-            # Random indices of relevant courses for each query to use as sample training data
-            'ground_truth': [
-                [1, 62, 137], 
-                [382, 306],
-                [309, 273]     
-            ]
-        })
 
     def preprocess_text(self, text):
         text = re.sub(r'[^\w\s]', '', text)

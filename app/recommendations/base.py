@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 from azureml.core import Workspace, Model, Run, Experiment
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 class BaseRecommender(ABC):
     def __init__(self, model_name: str):
+        load_dotenv()
         self.model_name = model_name
         self.version = datetime.now().strftime("%Y%m%d_%H%M")
         self.is_trained = False
