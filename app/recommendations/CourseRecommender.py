@@ -9,6 +9,7 @@ import re
 
 class CourseRecommender2(BaseRecommender):
     def __init__(self):
+        print("Initializing CourseRecommender...")
         super().__init__("course_recommender")
         self.vectorizer = None
         self.tfidf_matrix = None
@@ -20,6 +21,8 @@ class CourseRecommender2(BaseRecommender):
         """
         Load and preprocess the training data.
         """
+        print("Loading data...")
+        
         # Load the training data (e.g., course descriptions)
         data_path = os.path.join("input_data", "kaggle_filtered_courses.csv")
         if not os.path.exists(data_path):
@@ -36,6 +39,7 @@ class CourseRecommender2(BaseRecommender):
         self.data['combined_features'] = (
             self.data['Name'] + ' ' + self.data['About'] + ' ' + self.data['Course Description'] + ' ' + self.data['Difficulty Level']
         )
+        print("Data loaded successfully.")
 
     def preprocess_text(self, text):
         text = re.sub(r'[^\w\s]', '', text)
