@@ -37,4 +37,4 @@ jobs:
           echo "AZURE_RESOURCE_GROUP=${{ secrets.AZURE_RESOURCE_GROUP }}" >> $GITHUB_ENV
           echo "AZURE_WORKSPACE_NAME=${{ secrets.AZURE_WORKSPACE_NAME }}" >> $GITHUB_ENV
       - name: Run tests
-        run: pytest tests/test_recommender.py
+        run: pytest tests/test_recommender.py -v --capture=no

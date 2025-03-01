@@ -3,9 +3,6 @@ from .base import BaseRecommender
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-import numpy as np
-from sklearn.metrics import ndcg_score
-from sklearn.feature_extraction.text import CountVectorizer
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
@@ -25,6 +22,8 @@ class CourseRecommender2(BaseRecommender):
         """
         # Load the training data (e.g., course descriptions)
         data_path = os.path.join("input_data", "kaggle_filtered_courses.csv")
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"Data file not found at: {data_path}")        
         self.data = pd.read_csv(data_path)
         
         # Preprocess the data (e.g., normalize text, combine features)
