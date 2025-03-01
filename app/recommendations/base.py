@@ -12,9 +12,9 @@ class BaseRecommender(ABC):
         self.is_trained = False
         self.data = None
         
-        subscription_id = os.getenv("AZURE_ML_SUBSCRIPTION_ID")
-        resource_group = os.getenv("AZURE_ML_RESOURCE_GROUP")
-        workspace_name = os.getenv("AZURE_ML_WORKSPACE_NAME")
+        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
+        resource_group = os.getenv("AZURE_RESOURCE_GROUP")
+        workspace_name = os.getenv("AZURE_WORKSPACE_NAME")
         
         if not all([subscription_id, resource_group, workspace_name]):
             raise ValueError("Missing Azure ML environment variables: AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, AZURE_WORKSPACE_NAME")
