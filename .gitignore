@@ -54,3 +54,5 @@ logs/
 
 # Local Development
 *.local.env
+
+testingsmth.py

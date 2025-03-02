@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from chatbot import chat_with_bot
+from chatbot_gpt import chat_with_bot as chat_with_gpt
+from chatbot_deepseek import chat_with_bot as chat_with_deepseek
 from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
 
-
-# Load dataset to get available categories and difficulty levels
+# Load dataset for available categories and difficulty levels
 @st.cache_data
 def load_courses():
     return pd.read_csv("input_data/kaggle_filtered_courses.csv")
@@ -20,10 +20,16 @@ if "messages" not in st.session_state:
 # User selects recommendation method
 option = st.radio(
     "Choose Recommendation Method:",
-    ("Conversational AI Chatbot (GPT-4)", "Cosine Similarity Model"),
+    ("Conversational AI Chatbot", "Cosine Similarity Model"),
 )
 
-if option == "Conversational AI Chatbot (GPT-4)":
+# If AI Chatbot is selected, allow users to choose between DeepSeek and GPT-4
+if option == "Conversational AI Chatbot":
+    chatbot_option = st.radio(
+        "Choose AI Model:",
+        ("DeepSeek API", "GPT-4"),
+    )
+
     # Ensure dropdowns only contain unique, sorted values from the dataset
     difficulty_levels = sorted(courses["Difficulty Level"].dropna().unique().tolist())
     categories = sorted(courses["Category"].dropna().unique().tolist())
@@ -43,8 +49,11 @@ if option == "Conversational AI Chatbot (GPT-4)":
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": user_input})
 
-        # Get chatbot response
-        bot_response = chat_with_bot(user_input, difficulty, category, st.session_state.messages)
+        # Use the selected chatbot
+        if chatbot_option == "GPT-4":
+            bot_response = chat_with_gpt(user_input, difficulty, category, st.session_state.messages)
+        else:
+            bot_response = chat_with_deepseek(user_input, difficulty, category, st.session_state.messages)
 
         # Add bot response to chat history
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
@@ -59,7 +68,6 @@ else:
 
     if st.button("Get Recommendations"):
         recommender = CourseRecommenderCosine()
-
         recommender.load_data()
         recommender.train()
         recommender.load_test_data()
