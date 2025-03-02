@@ -99,10 +99,14 @@ def search_youtube_videos(query, max_results=50):
     return video_data
 
 # Function to save video data to CSV
-def save_to_csv(video_data, filename="youtube_videos.csv"):
+def save_to_csv(video_data, filename="youtube_videos.csv", path="../input_data/youtube_videos.csv"):
     df = pd.DataFrame(video_data)
-    df.to_csv(filename, index=False)
-    print(f"Data saved to {filename}")
+    if os.path.isfile(path):
+        df.to_csv(path, mode='a', header=False, index=False)
+    else:
+        df.to_csv(path, index=False)
+    
+    print(f"Data saved to {path}")
 
 # Function to generate search queries
 def generate_queries(topics):
