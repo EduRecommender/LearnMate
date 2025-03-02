@@ -10,10 +10,9 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-api_key = os.getenv("YOUTUBE_API_KEY")
-YOUTUBE_API_KEY = api_key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
-# Function to fetch videos from a YouTube channel using the YouTube Data API
+# Function to fetch videos from a YouTube channel
 def fetch_videos_from_channel(channel_id, max_results=10):
     url = f"https://www.googleapis.com/youtube/v3/search?key={YOUTUBE_API_KEY}&channelId={channel_id}&part=snippet,id&order=date&maxResults={max_results}"
     
@@ -27,7 +26,7 @@ def fetch_videos_from_channel(channel_id, max_results=10):
     videos = []
     for item in data["items"]:
         if item["id"]["kind"] != "youtube#video":
-            continue  # Skip non-video results (like playlists or channels)
+            continue  # Skip non-video results
 
         video_id = item["id"]["videoId"]
         snippet = item["snippet"]
@@ -37,14 +36,29 @@ def fetch_videos_from_channel(channel_id, max_results=10):
             "title": snippet.get("title", ""),
             "url": f"https://www.youtube.com/watch?v={video_id}",
             "channel": snippet.get("channelTitle", ""),
-            "channel_id": channel_id,
-            "description": snippet.get("description", ""),
             "upload_date": snippet.get("publishedAt", ""),
         })
-
     return videos
 
-# Function to check if a video is educational based on keywords
+# Function to fetch video statistics
+def fetch_video_statistics(video_id):
+    url = f"https://www.googleapis.com/youtube/v3/videos?key={YOUTUBE_API_KEY}&id={video_id}&part=statistics"
+    
+    response = requests.get(url)
+    data = response.json()
+
+    if "items" not in data or not data["items"]:
+        print(f"Error fetching statistics for video {video_id}: {data}")
+        return {}
+
+    stats = data["items"][0]["statistics"]
+    return {
+        "view_count": stats.get("viewCount", 0),
+        "like_count": stats.get("likeCount", 0),
+        "dislike_count": stats.get("dislikeCount", 0)
+    }
+
+# Function to check if a video is educational
 def is_educational(text):
     keywords = ["tutorial", "lecture", "lesson", "course", "exam prep", "crash course", "learning"]
     return any(re.search(rf"\b{keyword}\b", text.lower()) for keyword in keywords)
@@ -58,7 +72,7 @@ def get_transcript(video_id):
         print(f"Error fetching transcript for {video_id}: {e}")
         return ""
 
-# Function to search YouTube videos using yt-dlp and return video details
+# Function to search YouTube videos
 def search_youtube_videos(query, max_results=50):
     ydl_opts = {
         'quiet': True,
@@ -69,34 +83,28 @@ def search_youtube_videos(query, max_results=50):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         search_url = f"ytsearch{max_results}:{query}"
         info = ydl.extract_info(search_url, download=False)
-        
+    
     video_data = []
     if 'entries' in info:
         for item in info['entries']:
-            video_id = item.get("id")  # Extract video ID directly
-            video_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else item.get("url")
-
+            video_id = item.get("id")
             video_data.append({
-                "Title": item.get("title"),
-                "Channel": item.get("uploader"),
-                "Published Date": item.get("upload_date"),
-                "Video URL": video_url,
                 "video_id": video_id,
+                "title": item.get("title"),
+                "channel": item.get("uploader"),
+                "upload_date": item.get("upload_date"),
+                "url": f"https://www.youtube.com/watch?v={video_id}" if video_id else item.get("url"),
             })
     
     return video_data
 
-# Function to save the video data to a CSV file
-def save_to_csv(video_data, filename="youtube_videos.csv", path="../input_data/youtube_videos.csv"):
+# Function to save video data to CSV
+def save_to_csv(video_data, filename="youtube_videos.csv"):
     df = pd.DataFrame(video_data)
-    if os.path.isfile(path):
-        df.to_csv(path, mode='a', header=False, index=False)
-    else:
-        df.to_csv(path, index=False)
-    
-    print(f"Data saved to {path}")
+    df.to_csv(filename, index=False)
+    print(f"Data saved to {filename}")
 
-# Function to generate queries based on category keywords
+# Function to generate search queries
 def generate_queries(topics):
     queries = []
     for topic in topics:
@@ -105,15 +113,9 @@ def generate_queries(topics):
         queries.append(f"{topic} how to")
     return queries
 
+# Main function
 def main():
     all_videos = []
-
-    category_keywords = ["business", "finance", "entrepreneur", "management", "accounting", "economics", "project management", "leadership", "strategy", "investment", 
-                     "math", "mathematics", "statistics", "calculus", "algebra", "geometry", "probability", "trigonometry", "differential equations", "linear algebra", "discrete math", "topology", "combinatorics", "set theory", "real analysis", "complex analysis", "abstract algebra", "number theory", "graph theory", "logic", "game theory", "measure theory", "mathematical modeling", "stochastic processes", "numerical analysis", "multivariable calculus", "optimization", "vector calculus", "applied mathematics",
-                     "computer science", "programming", "software", "coding", "java", "python", "C++", "AI", "artificial intelligence", "web development", "cs50", "technology", "algorithms", "autonomous systems", "systems programming", "cybersecurity", "blockchain", "cloud computing", "machine learning", "deep learning", "neural networks", "operating systems", "computational thinking", "networking", "computer architecture", "embedded systems", "database systems", "theory of computation",
-                     "data analytics", "big data", "SQL", "machine learning", "deep learning", "data science", "excel", "r programming", "data", "predictive modeling", "business intelligence", "data mining", "data visualization", "data engineering", "time series analysis", "ETL", "hadoop", "spark",
-                     "design", "graphic design", "ux", "ui", "web design", "visual", "animation", "illustration", "motion graphics", "product design", "typography", "brand design", "3D modeling", "video editing", "industrial design", "color theory", "interaction design",
-                     "marketing", "advertising", "seo", "branding", "digital marketing", "social media", "consumer behavior", "market research", "public relations", "copywriting", "growth hacking", "email marketing", "content marketing", "performance marketing"]
 
     # Fetch videos from trusted channels
     for channel_id in trusted_channels:
@@ -121,29 +123,33 @@ def main():
         videos = fetch_videos_from_channel(channel_id, max_results=10)
 
         for video in videos:
-            if not is_educational(video["title"] + " " + video["description"]):
-                continue  # Skip non-educational videos
+            if not is_educational(video["title"]):
+                continue
 
+            video_stats = fetch_video_statistics(video["video_id"])
             transcript = get_transcript(video["video_id"])
+            
+            video.update(video_stats)
             video["transcript"] = transcript
+            
             all_videos.append(video)
 
-    # Fetch videos based on category keywords
+    # Fetch videos based on queries
+    category_keywords = ["business", "finance", "entrepreneur", "math", "statistics", "computer science", "programming"]
     for query in generate_queries(category_keywords):
         print(f"Fetching YouTube videos for query: {query}")
         video_results = search_youtube_videos(query, max_results=20)
-
+        
         for video in video_results:
-            if not is_educational(video["Title"]):
-                continue  # Skip non-educational videos
-
-            video_id = video.get("video_id")
-            if not video_id:
-                print(f"Skipping video without valid ID: {video}")
-                continue  # Skip if we can't extract the video ID
-
-            transcript = get_transcript(video_id)
+            if not is_educational(video["title"]):
+                continue
+            
+            video_stats = fetch_video_statistics(video["video_id"])
+            transcript = get_transcript(video["video_id"])
+            
+            video.update(video_stats)
             video["transcript"] = transcript
+            
             all_videos.append(video)
 
     if all_videos:
