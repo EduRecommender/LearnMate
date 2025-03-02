@@ -5,15 +5,15 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
+gpt_api_key = os.getenv("OPENAI_API_KEY")
 
-if not api_key:
+if not gpt_api_key:
     raise ValueError("OpenAI API key not found. Ensure your .env file is set up correctly.")
 
 # Initialize OpenAI client
-client = OpenAI(api_key=api_key)
+gpt_client = OpenAI(api_key=gpt_api_key)
 
-# Dynamically locate the CSV file
+# Load course dataset dynamically
 COURSES_FILE = os.getenv("COURSES_FILE", os.path.join(os.path.dirname(__file__), "input_data", "kaggle_filtered_courses.csv"))
 
 def load_courses():
@@ -32,14 +32,21 @@ def summarize_text(text, max_words=20):
 
 def chat_with_bot(user_input, difficulty, category, chat_history):
     """
-    Conversational chatbot that remembers past interactions.
+    Conversational chatbot using GPT-4 that remembers past interactions.
     """
-    # Filter dataset based on difficulty and category
-    filtered_courses = courses[(courses["Difficulty Level"] == difficulty) & (courses["Category"] == category)]
+    # Ensure valid inputs
+    if not user_input.strip():
+        return "Please enter a valid question."
 
-    # ✅ If no courses found, suggest courses from ANY category at the same difficulty level
+    # Case-insensitive filtering for difficulty and category
+    filtered_courses = courses[
+        (courses["Difficulty Level"].str.lower() == difficulty.lower()) & 
+        (courses["Category"].str.lower() == category.lower())
+    ]
+
+    # ✅ If no exact match is found, suggest courses from ANY category at the same difficulty level
     if filtered_courses.empty:
-        filtered_courses = courses[courses["Difficulty Level"] == difficulty].head(5)  # Get alternative courses
+        filtered_courses = courses[courses["Difficulty Level"].str.lower() == difficulty.lower()].head(5)
         if filtered_courses.empty:
             return f"Sorry, no courses found for Difficulty Level: {difficulty} and Category: {category}."
 
@@ -54,7 +61,14 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     filtered_courses = filtered_courses[valid_columns].head(5)
 
     # Format past messages for context
-    past_messages = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in chat_history])
+    past_messages = [{"role": msg["role"], "content": msg["content"]} for msg in chat_history]
+    past_messages.append({"role": "user", "content": user_input})
+
+    # Format recommended courses
+    course_list = "\n".join([
+        f"**{row['Name']}** - {row['University']} ({row['Difficulty Level']})\n[Course Link]({row['Link']})"
+        for _, row in filtered_courses.iterrows()
+    ])
 
     prompt = f"""
     You are an AI assistant helping users find the best courses.
@@ -63,26 +77,23 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     - Difficulty Level: {difficulty}
     - Category: {category}
 
-    Previous conversation:
-    {past_messages}
+    Recommended Courses:
+    {course_list}
 
-    Current User Message:
-    {user_input}
-
-    Relevant Courses:
-    {filtered_courses.to_string(index=False)}
-
-    Respond as a helpful chatbot, keeping the conversation natural.
+    Keep the conversation natural and friendly.
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an AI that recommends courses only from the given database."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    past_messages.append({"role": "system", "content": prompt})
 
-    return response.choices[0].message.content
+    # Query GPT-4 API with exception handling
+    try:
+        response = gpt_client.chat.completions.create(
+            model="gpt-4",
+            messages=past_messages,
+            stream=False
+        )
 
+        return response.choices[0].message.content
 
+    except Exception as e:
+        return f"An error occurred while communicating with GPT-4: {str(e)}"
