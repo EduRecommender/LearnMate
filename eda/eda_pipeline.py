@@ -1,8 +1,13 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
+
+import os
+os.system("pip install seaborn==0.13.2")
+
+import seaborn as sns
+
 
 # Streamlit Page Configuration
 st.set_page_config(page_title="Kaggle Courses EDA", layout="wide")
@@ -12,8 +17,14 @@ st.title("📊 Kaggle Dataset Exploratory Data Analysis")
 # Load the dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv("../input_data/kaggle_filtered_courses.csv")
-    return df
+    file_path = os.path.join(os.path.dirname(__file__), "../input_data/kaggle_filtered_courses.csv")
+    
+    if not os.path.exists(file_path):
+        st.error(f"❌ File not found: {file_path}")
+        return pd.DataFrame()  # Return empty DataFrame to avoid crashes
+
+    return pd.read_csv(file_path)
+
 
 kaggle_df = load_data()
 
@@ -80,11 +91,22 @@ st.plotly_chart(fig)
 
 # Value Counts for Course Categories
 st.subheader("📚 Course Category Breakdown")
-category_counts = kaggle_df["Category"].value_counts()
-fig, ax = plt.subplots(figsize=(8, 4))
-sns.barplot(x=category_counts.index, y=category_counts.values, palette="viridis", ax=ax)
-plt.xticks(rotation=45)
-st.pyplot(fig)
+
+# Compute category counts and rename columns correctly
+category_counts = kaggle_df["Category"].value_counts().reset_index()
+category_counts.columns = ["Category", "Count"]  # Rename columns
+
+# Debugging: Show the corrected DataFrame
+st.write("Category Counts DataFrame:", category_counts.head())
+
+# Create bar chart
+fig = px.bar(category_counts, 
+             x="Category", 
+             y="Count", 
+             title="Course Category Distribution", 
+             labels={"Category": "Course Category", "Count": "Number of Courses"},
+             color="Category")  # Color bars by category for better visualization
+st.plotly_chart(fig)
 
 
 

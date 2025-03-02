@@ -1,5 +1,9 @@
 # LearnMate
 
+### Web App Links:
+- Recommendation System: [Link](https://learnmate.streamlit.app/)
+- EDA + Data Vizualization for Data Scientists: [Link](https://learnmate-eda.streamlit.app)
+
 ### Run:
 ```
 pip install -r requirements.txt
