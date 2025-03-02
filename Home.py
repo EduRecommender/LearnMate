@@ -3,6 +3,7 @@ import pandas as pd
 from chatbot import chat_with_bot
 from recommendation.models.team_models.Andres.CourseRecommenderCosine import CourseRecommenderCosine
 
+
 # Load dataset to get available categories and difficulty levels
 @st.cache_data
 def load_courses():
@@ -58,6 +59,7 @@ else:
 
     if st.button("Get Recommendations"):
         recommender = CourseRecommenderCosine()
+
         recommender.load_data()
         recommender.train()
         recommender.load_test_data()
