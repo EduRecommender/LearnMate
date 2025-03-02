@@ -14,8 +14,7 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 # Dynamically locate the CSV file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  
-COURSES_FILE = os.path.join(BASE_DIR, "input_data", "kaggle_filtered_courses.csv")  
+COURSES_FILE = os.getenv("COURSES_FILE", os.path.join(os.path.dirname(__file__), "input_data", "kaggle_filtered_courses.csv"))
 
 def load_courses():
     """Loads the course dataset dynamically."""
@@ -38,8 +37,11 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     # Filter dataset based on difficulty and category
     filtered_courses = courses[(courses["Difficulty Level"] == difficulty) & (courses["Category"] == category)]
 
+    # ✅ If no courses found, suggest courses from ANY category at the same difficulty level
     if filtered_courses.empty:
-        return f"No courses found for Difficulty Level: {difficulty} and Category: {category}."
+        filtered_courses = courses[courses["Difficulty Level"] == difficulty].head(5)  # Get alternative courses
+        if filtered_courses.empty:
+            return f"Sorry, no courses found for Difficulty Level: {difficulty} and Category: {category}."
 
     # Select only the most relevant columns
     valid_columns = ["Name", "University", "Difficulty Level", "Link", "About", "Course Description", "Category"]
@@ -82,3 +84,5 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     )
 
     return response.choices[0].message.content
+
+
