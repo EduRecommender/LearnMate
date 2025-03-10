@@ -17,8 +17,12 @@ st.title("📊 Kaggle Dataset Exploratory Data Analysis")
 # Load the dataset
 @st.cache_data
 def load_data():
-    file_path = os.path.join(os.path.dirname(__file__), "../input_data/kaggle_filtered_courses.csv")
-    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(script_dir, "../../.."))
+    file_path = os.path.join(project_root, "input_data", "kaggle_filtered_courses.csv")
+    print(f"Looking for file at: {file_path}")
+
+
     if not os.path.exists(file_path):
         st.error(f"❌ File not found: {file_path}")
         return pd.DataFrame()  # Return empty DataFrame to avoid crashes

@@ -1,11 +1,8 @@
 import os
-from recommendation.models.base import BaseRecommender
+from .base import BaseRecommender
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-import numpy as np
-from sklearn.metrics import ndcg_score
-from sklearn.feature_extraction.text import CountVectorizer
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
@@ -25,6 +22,8 @@ class CourseRecommender2(BaseRecommender):
         """
         # Load the training data (e.g., course descriptions)
         data_path = os.path.join("input_data", "kaggle_filtered_courses.csv")
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"Data file not found at: {data_path}")        
         self.data = pd.read_csv(data_path)
         
         # Preprocess the data (e.g., normalize text, combine features)
@@ -38,62 +37,6 @@ class CourseRecommender2(BaseRecommender):
             self.data['Name'] + ' ' + self.data['About'] + ' ' + self.data['Course Description'] + ' ' + self.data['Difficulty Level']
         )
 
-    def load_test_data(self):
-        """
-        Load and preprocess the test data.
-        These are just some random samples to use as an example so the results shouldn't be taken seriously.
-        """
-        # Define test queries and ground truth
-        self.test_data = pd.DataFrame({
-            'query': [
-                "I want to learn programming basics",
-                "I want to learn computer vision",
-                "I want to learn data science"
-            ],
-            # Random indices of relevant courses for each query to use as sample training data
-            'ground_truth': [
-                [1, 62, 137], 
-                [382, 306],
-                [309, 273]     
-            ]
-        })
-
-    def evaluate(self, top_k=5):
-        """
-        Evaluate the model using its own test data.
-        """
-        precision_scores = []
-        recall_scores = []
-        ndcg_scores = []
-        
-        for _, row in self.test_data.iterrows():
-            query = row['query']
-            ground_truth = row['ground_truth']
-            
-            # Get recommendations
-            recommendations = self.predict(query, top_k, print_output=False) # Disable printing in evaluate
-            recommended_indices = recommendations.index.tolist()
-            
-            # Compute precision@k and recall@k
-            relevant = set(ground_truth)
-            retrieved = set(recommended_indices)
-            precision = len(relevant.intersection(retrieved)) / top_k
-            recall = len(relevant.intersection(retrieved)) / len(relevant) if len(relevant) > 0 else 0
-            
-            # Compute NDCG@k
-            relevance_scores = [1 if idx in ground_truth else 0 for idx in recommended_indices]
-            ndcg = ndcg_score([relevance_scores], [relevance_scores], k=top_k)
-            
-            precision_scores.append(precision)
-            recall_scores.append(recall)
-            ndcg_scores.append(ndcg)
-        
-        return {
-            'precisionk': np.mean(precision_scores),
-            'recallk': np.mean(recall_scores),
-            'ndcgk': np.mean(ndcg_scores)
-        }
-    
     def preprocess_text(self, text):
         text = re.sub(r'[^\w\s]', '', text)
         text = ' '.join([word for word in text.split() if word not in self.stop_words])
