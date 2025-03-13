@@ -93,4 +93,11 @@ python-dotenv
 tiktoken
 yt_dlp
 youtube_transcript_api
-
+fitz
+pymupdf
+spacy
+nltk
+wheelpp
+numpy
+pdfplumber
+pandas
