@@ -16,6 +16,7 @@ trusted_channels = [
     "UC6107grRI4m0o2-emgoDnAA",  # Smarter Every Day
     "UCZYTClx2T1of7BRZ86-8fow",  # SciShow
     "UC7_gcs09iThXybpVgjHZ_7g",  # PBS Space Time
+    "UCEWpbFLzoYGPfuWUMFPSaoA",  # The Organic Chemistry Tutor
 
     # Business & Finance
     "UC2sYJH9MZ2u6p4S9R6pYeCA",  # Investopedia
