@@ -1,4 +1,5 @@
 import os
+import time
 import pandas as pd
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -90,6 +91,18 @@ def summarize_text(text, max_words=20):
     words = text.split()
     return " ".join(words[:max_words]) + "..." if len(words) > max_words else text
 
+# Retry function / logic
+def retry_request(func, max_retries=3, delay=2):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+            else:
+                return f"An error occurred after {max_retries} retries: {str(e)}"
+
 def chat_with_bot(user_input, difficulty, category, chat_history):
     """
     Conversational chatbot using DeepSeek API that recommends both courses and YouTube videos.
@@ -173,14 +186,23 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     past_messages.append({"role": "system", "content": prompt})
 
     # Query DeepSeek API with exception handling
-    try:
+#    try:
+#        response = deepseek_client.chat.completions.create(
+#            model="deepseek-chat",
+#            messages=past_messages,
+#            stream=False
+#        )
+
+#        return response.choices[0].message.content
+
+#    except Exception as e:
+#        return f"An error occurred while communicating with DeepSeek: {str(e)}"
+
+    def send_chat_request():
         response = deepseek_client.chat.completions.create(
             model="deepseek-chat",
             messages=past_messages,
             stream=False
         )
-
         return response.choices[0].message.content
-
-    except Exception as e:
-        return f"An error occurred while communicating with DeepSeek: {str(e)}"
+    return retry_request(send_chat_request)

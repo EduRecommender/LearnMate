@@ -1,4 +1,6 @@
 import os
+import time
+import random
 import pandas as pd
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -29,6 +31,19 @@ def summarize_text(text, max_words=20):
     """Returns a shorter version of the text with max_words."""
     words = text.split()
     return " ".join(words[:max_words]) + "..." if len(words) > max_words else text
+
+# retry requesting / handling function
+def retry_request(func, max_retries=3, backoff_factor=2, jitter=1.0):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            if attempt < max_retries - 1:
+                sleep_time = backoff_factor ** attempt + random.uniform(0, jitter)
+                print(f"Retrying in {sleep_time:.2f} seconds due to error: {e}")
+                time.sleep(sleep_time)
+            else:
+                raise e
 
 def chat_with_bot(user_input, difficulty, category, chat_history):
     """
@@ -86,14 +101,26 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
     past_messages.append({"role": "system", "content": prompt})
 
     # Query GPT-4 API with exception handling
-    try:
-        response = gpt_client.chat.completions.create(
+#    try:
+#        response = gpt_client.chat.completions.create(
+#            model="gpt-4",
+#            messages=past_messages,
+#            stream=False
+#        )
+#
+#        return response.choices[0].message.content
+#
+#    except Exception as e:
+#        return f"An error occurred while communicating with GPT-4: {str(e)}"
+
+    def gpt_call():
+        return gpt_client.chat.completions.create(
             model="gpt-4",
             messages=past_messages,
             stream=False
         )
-
+    try:
+        response = retry_request(gpt_call)
         return response.choices[0].message.content
-
     except Exception as e:
-        return f"An error occurred while communicating with GPT-4: {str(e)}"
+        return f"An error occurred while communicating with GPT-4 {str(e)}"
