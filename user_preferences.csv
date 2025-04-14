@@ -1,0 +1,3 @@
+session_id,timestamp,name,learning_goal,time_available,urgency_level,learning_style,preferred_resources,study_environment,energy_level,has_set_preferences,has_skipped_preferences
+20250410_153826,2025-04-10 15:39:04,Daniel,Exam Preparation,Half day,High,Visual,"['Study Notes', 'Video Tutorials', 'Practice Exercises']",Background Music,Morning Person,True,False
+20250413_155852,2025-04-13 15:59:19,Daniel,Exam Preparation,2 hours,Not Set,Not Set,"['Video Tutorials', 'Books', 'Articles', 'Flashcards']",Coffee Shop,Morning Person,True,False
