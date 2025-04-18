@@ -8,6 +8,7 @@ import uuid
 import sys
 import logging
 import json
+import tempfile
 
 from ....database import get_db
 from ....services.session import SessionService
@@ -21,7 +22,7 @@ from ....schemas.user import (
     ChatMessage,
     ChatMessageCreate,
 )
-from ....models.user import User as UserModel
+from ....models.user import User as UserModel, Resource
 from ....services.user import UserService
 
 # Setup logging
@@ -333,6 +334,23 @@ async def upload_syllabus(
     """
     Upload syllabus to study session.
     """
+    import tempfile
+    
+    # Try to import the syllabus processor
+    try:
+        # Add the root directory to the path to access the syllabus_processor
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
+        if root_dir not in sys.path:
+            sys.path.append(root_dir)
+        
+        from syllabus_processor import process_uploaded_syllabus
+        has_processor = True
+        logger.info("Syllabus processor imported successfully")
+    except (ImportError, Exception) as e:
+        has_processor = False
+        logger.warning(f"Syllabus processor not available: {str(e)}")
+        logger.exception("Error details:")
+    
     session = SessionService.get_session(db, session_id)
     if not session:
         raise HTTPException(
@@ -340,21 +358,118 @@ async def upload_syllabus(
             detail="Study session not found",
         )
     
-    # Create a resource for the syllabus
-    resource_in = ResourceCreate(
+    # Save the original PDF file as a resource
+    original_resource_in = ResourceCreate(
         session_id=session_id,
         name=file.filename,
         type="file",
         content=None,
-        resource_metadata={"content_type": file.content_type, "is_syllabus": True}
+        resource_metadata={"content_type": file.content_type, "is_syllabus": True, "is_original": True}
     )
-    resource = await SessionService.upload_resource(db, resource_in, file)
     
-    # Update the session's syllabus field with the resource ID
-    session.syllabus = {"resource_id": resource.id}
-    db.add(session)
-    db.commit()
-    db.refresh(session)
+    # Need to save to a temporary file to process it
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+        # Read the content of the uploaded file
+        content = await file.read()
+        # Write it to the temporary file
+        temp_file.write(content)
+        temp_file.flush()
+        temp_file_path = temp_file.name
+    
+    try:
+        # Store the original PDF file
+        # Reset the file position for upload
+        await file.seek(0)
+        original_resource = await SessionService.upload_resource(db, original_resource_in, file)
+        
+        # Process the syllabus if processor is available
+        syllabus_info = {"resource_id": original_resource.id}
+        
+        if has_processor:
+            try:
+                # Process the uploaded syllabus using the temp file path
+                syllabus_data = process_uploaded_syllabus(temp_file_path)
+                
+                # Create a text resource with the processed content
+                if syllabus_data and (syllabus_data.get("course_name") or syllabus_data.get("session_content")):
+                    # Create a formatted text version of the processed syllabus
+                    processed_text = f"# {syllabus_data.get('course_name', 'Unknown Course')}\n\n"
+                    processed_text += "## Session Content\n\n"
+                    
+                    for topic in syllabus_data.get("session_content", []):
+                        processed_text += f"- {topic}\n"
+                    
+                    # Create a text resource with the processed content
+                    text_resource_in = ResourceCreate(
+                        session_id=session_id,
+                        name=f"{os.path.splitext(file.filename)[0]}_processed.txt",
+                        type="text",
+                        content=processed_text,
+                        resource_metadata={
+                            "content_type": "text/plain", 
+                            "is_syllabus": True,
+                            "is_processed": True,
+                            "format": "markdown"
+                        }
+                    )
+                    
+                    # Create the text resource directly without a file
+                    text_resource = Resource(
+                        session_id=text_resource_in.session_id,
+                        name=text_resource_in.name,
+                        type=text_resource_in.type,
+                        content=text_resource_in.content,
+                        resource_metadata=text_resource_in.resource_metadata
+                    )
+                    
+                    db.add(text_resource)
+                    db.commit()
+                    db.refresh(text_resource)
+                    
+                    # Update the syllabus info with the processed data
+                    syllabus_info = {
+                        "original_resource_id": original_resource.id,
+                        "processed_resource_id": text_resource.id,
+                        "course_name": syllabus_data.get("course_name", "Unknown Course"),
+                        "session_content": syllabus_data.get("session_content", []),
+                        "processed": True
+                    }
+                    
+                    logger.info(f"Syllabus processed successfully for session {session_id}")
+                else:
+                    # No useful data extracted
+                    logger.warning(f"No useful data extracted from syllabus for session {session_id}")
+                    syllabus_info["processed"] = False
+                    syllabus_info["error"] = "No useful data extracted from syllabus"
+                
+            except Exception as e:
+                # If processing fails, still save the syllabus but mark it as not processed
+                logger.error(f"Failed to process syllabus: {str(e)}")
+                logger.exception("Error details:")
+                syllabus_info["processed"] = False
+                syllabus_info["error"] = str(e)
+        else:
+            # If processor is not available, just save the resource ID
+            syllabus_info["processed"] = False
+            syllabus_info["error"] = "Syllabus processor not available"
+        
+        # Update the session with the syllabus info
+        session.syllabus = syllabus_info
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+        
+    except Exception as e:
+        logger.error(f"Error in syllabus upload: {str(e)}")
+        logger.exception("Error details:")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process syllabus: {str(e)}"
+        )
+    finally:
+        # Clean up the temporary file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
     
     return session
 

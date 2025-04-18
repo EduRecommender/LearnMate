@@ -254,61 +254,150 @@ export default function SessionDetailPage() {
     }
   };
 
-  const getResourcePreview = (resource: any) => {
-    if (!resource) return null;
+  const getSyllabusContent = () => {
+    if (!session) return null;
+    
+    // Get processed resource ID if available
+    const processedResourceId = session.syllabus?.processed_resource_id;
+    const isProcessed = session.syllabus?.processed === true;
+    
+    // If session has syllabus data, display it nicely formatted
+    if (isProcessed && (session.syllabus?.course_name || session.syllabus?.session_content)) {
+      // Limit the number of topics shown
+      const initialTopicsToShow = 10;
+      const allTopics = session.syllabus.session_content || [];
+      const displayedTopics = allTopics.slice(0, initialTopicsToShow);
+      const hasMoreTopics = allTopics.length > initialTopicsToShow;
+      
+      return (
+        <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-white">
+          {session.syllabus.course_name && (
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">{session.syllabus.course_name}</h3>
+          )}
+          {allTopics.length > 0 && (
+            <div>
+              <h4 className="text-md font-medium text-gray-700 mb-2">Session Content:</h4>
+              <ul className="pl-5 space-y-1 list-disc max-h-60 overflow-y-auto">
+                {displayedTopics.map((topic: string, index: number) => (
+                  <li key={index} className="text-sm text-gray-900">
+                    {topic}
+                  </li>
+                ))}
+                {hasMoreTopics && (
+                  <li className="text-sm text-gray-500 italic">
+                    ... and {allTopics.length - initialTopicsToShow} more topics
+                  </li>
+                )}
+              </ul>
+              
+              {processedResourceId && (
+                <div className="mt-4 text-sm">
+                  <a 
+                    href={`/api/v1/sessions/${session.id}/resources/${processedResourceId}/download`}
+                    className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    View complete syllabus
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // If the syllabus processing failed or wasn't processed
+    if (session.syllabus?.error) {
+      return (
+        <div className="mt-4 border border-red-100 rounded-lg p-4 bg-red-50 text-red-800">
+          <p className="font-medium">Processing error:</p>
+          <p className="text-sm">{session.syllabus.error}</p>
+        </div>
+      );
+    }
+    
+    // Default case
+    return null;
+  };
 
+  const getResourcePreview = (resource: any) => {
+    // Helper function to get file URL
     const getFileUrl = (resource: any) => {
+      if (!resource || !resource.id) return "";
       return `/api/v1/sessions/${session.id}/resources/${resource.id}/download`;
     };
-
-    switch (resource.type.toLowerCase()) {
-      case 'url':
-        return (
-          <div className="mt-2">
-            <iframe 
-              src={resource.content}
-              className="w-full h-64 border rounded"
-              title={resource.name}
-            />
+    
+    // Check if this is a processed syllabus text resource
+    if (resource.metadata?.is_syllabus && resource.metadata?.is_processed && resource.type === 'text' && resource.content) {
+      // Get just the first few lines for a compact preview
+      const lines = resource.content.split('\n');
+      const courseNameLine = lines.find((line: string) => line.startsWith('#')) || 'Syllabus Content';
+      const previewLines = lines.filter((line: string) => line.trim() && line.startsWith('-')).slice(0, 3);
+      
+      return (
+        <div className="mt-2 p-3 border rounded bg-gray-50 text-sm text-gray-800">
+          <p className="font-medium">{courseNameLine.replace('#', '').trim()}</p>
+          {previewLines.length > 0 && (
+            <ul className="mt-1 pl-4 list-disc text-xs text-gray-600">
+              {previewLines.map((line: string, i: number) => (
+                <li key={i}>{line.replace('-', '').trim()}</li>
+              ))}
+            </ul>
+          )}
+          {lines.length > 4 && (
+            <p className="text-xs text-gray-500 mt-1 italic">... and more</p>
+          )}
+          <div className="mt-2 text-right">
+            <a 
+              href={getFileUrl(resource)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            >
+              View full content
+            </a>
           </div>
-        );
-      case 'file':
-        const fileExt = resource.name?.split('.').pop()?.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-          return (
-            <div className="mt-2">
-              <img 
-                src={getFileUrl(resource)}
-                alt={resource.name}
-                className="max-w-full h-auto rounded"
-              />
-            </div>
-          );
-        } else if (['pdf'].includes(fileExt)) {
-          return (
-            <div className="mt-2">
-              <iframe 
-                src={getFileUrl(resource)}
-                className="w-full h-96 border rounded"
-                title={resource.name}
-              />
-            </div>
-          );
-        }
-        return (
-          <div className="mt-2 text-sm text-gray-500">
-            File preview not available. <a href={getFileUrl(resource)} className="text-blue-600 hover:underline" download={resource.name}>Download file</a>
-          </div>
-        );
-      case 'text':
-        return (
-          <div className="mt-2">
-            <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded">{resource.content}</pre>
-          </div>
-        );
-      default:
-        return null;
+        </div>
+      );
     }
+    
+    // The rest of your existing preview logic for other resource types
+    const fileUrl = getFileUrl(resource);
+    
+    if (!fileUrl) return null;
+    
+    // Image preview
+    if (resource.metadata?.content_type?.startsWith('image/')) {
+      return (
+        <div className="mt-2">
+          <img 
+            src={fileUrl} 
+            alt={resource.name} 
+            className="max-h-40 object-contain rounded border"
+          />
+        </div>
+      );
+    }
+    
+    // PDF preview
+    if (resource.metadata?.content_type === 'application/pdf') {
+      return (
+        <div className="mt-2">
+          <embed 
+            src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
+            type="application/pdf"
+            className="w-full h-40 rounded border"
+          />
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   // Render chat messages with debug info
@@ -540,6 +629,9 @@ export default function SessionDetailPage() {
 
             {activeTab === 'resources' && (
               <div className="space-y-6">
+                {/* Display processed syllabus content if available */}
+                {getSyllabusContent()}
+                
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Upload Syllabus</h3>
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
