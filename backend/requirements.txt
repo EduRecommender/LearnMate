@@ -14,4 +14,12 @@ python-magic==0.4.27
 pytest==8.0.1
 httpx==0.26.0
 pytest-asyncio==0.23.5
-psycopg2-binary==2.9.9 
+psycopg2-binary==2.9.9
+# Added for multiagent integration
+crewai>=0.22.2
+langchain>=0.0.308
+langchain-openai>=0.0.2
+langchain-community>=0.0.10
+langchain-core>=0.0.10
+duckduckgo-search>=8.0.1
+ollama 

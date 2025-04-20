@@ -5,7 +5,16 @@ import logging
 import time
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+# Set specific loggers to DEBUG level
+logging.getLogger("app.api.v1.endpoints.sessions").setLevel(logging.DEBUG)
+logging.getLogger("app.services.llm_service").setLevel(logging.DEBUG)
+logging.getLogger("app.services.ollama_service").setLevel(logging.DEBUG)
+logging.getLogger("app.services.study_plan_service").setLevel(logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.INFO)  # Reduce noise from HTTP requests
 logger = logging.getLogger(__name__)
 
 # Import Base first
@@ -136,3 +145,26 @@ async def check_environment():
         print("=== DIAGNOSTICS COMPLETE ===\n")
     except Exception as e:
         print(f"Error during environment check: {str(e)}")
+
+# Add configuration for direct startup with long timeouts
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    
+    # Get configuration from environment or use defaults
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", 8002))
+    
+    # Start uvicorn with extended timeouts
+    uvicorn.run(
+        "app.main:app",
+        host=host,
+        port=port,
+        reload=True,
+        timeout_keep_alive=7200,  # 2 hour keep-alive timeout
+        timeout_graceful_shutdown=7200,  # 2 hour graceful shutdown
+        log_level="info",
+    )

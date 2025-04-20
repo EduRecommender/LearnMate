@@ -133,6 +133,23 @@ class Resource(Base, TimestampedModel):
             "updated_at": self.updated_at.isoformat()
         }
 
+class ChatMessage(Base, TimestampedModel):
+    """Chat message model for storing chat history."""
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message_id = Column(String, nullable=False, index=True)
+    session_id = Column(Integer, ForeignKey("study_sessions.id"), nullable=False)
+    role = Column(String, nullable=False)  # 'user' or 'assistant'
+    content = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship to study session
+    study_session = relationship("StudySession", back_populates="chat_messages")
+    
+    def __repr__(self):
+        return f"<ChatMessage {self.id} ({self.role})>"
+
 # Set up relationships AFTER all classes are defined
 User.study_sessions = relationship(
     StudySession, 
@@ -144,6 +161,13 @@ StudySession.resources = relationship(
     Resource, 
     back_populates="study_session", 
     cascade="all, delete-orphan"
+)
+
+StudySession.chat_messages = relationship(
+    ChatMessage,
+    back_populates="study_session",
+    cascade="all, delete-orphan",
+    order_by=ChatMessage.timestamp
 )
 
 Resource.study_session = relationship(
