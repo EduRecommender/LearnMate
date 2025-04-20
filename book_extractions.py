@@ -20,7 +20,7 @@ TOPICS = ["business", "finance", "entrepreneur", "management", "accounting", "ec
                      "project management", "agile", "scrum", "kanban", "waterfall", "project planning", "project scheduling", "project execution", "project monitoring", "project control", "project risk management", "project quality management", "project scope management", "project cost management", "project resource management", "project communication management", "project stakeholder management", "project procurement management", "project integration management",
                      "leadership", "teamwork", "communication", "emotional intelligence", "conflict resolution", "decision making", "problem solving", "critical thinking", "creativity", "innovation", "strategic thinking", "time management", "negotiation skills", "presentation skills", "interpersonal skills", "networking skills", "influence and persuasion", "mentoring and coaching", "adaptability and flexibility", "resilience and stress management","reinforcement learning", "supervised learning", "unsupervised learning", "natural language processing", "computer vision", "robotics", "data mining", "data visualization", "cloud computing", "internet of things", "edge computing", "quantum computing", "blockchain technology", "cybersecurity"
                      ]
-TOP_N = 1            # number of top ISBNs to fetch per topic from Google Books
+TOP_N = 40            # number of top ISBNs to fetch per topic from Google Books
 BATCH_SIZE = 10       # number of ISBNs per batch request to ISBNdb
 ISBNDB_API_KEY = os.getenv("ISBNDB_API_KEY")
 OUTPUT_PATH = "input_data/books.csv"
