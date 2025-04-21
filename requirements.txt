@@ -108,7 +108,6 @@ nltk
 numpy
 pdfplumber
 pandas
-Flask==2.0.1
 pytest==6.2.5
 requests>=2.31.0
 python-dotenv>=1.0.0
