@@ -39,10 +39,24 @@ download_nltk_resources()
 if 'last_refresh_time' not in st.session_state:
     st.session_state.last_refresh_time = datetime.now()
 
+# Get base directory (works both locally and on Streamlit Cloud)
+def get_base_dir():
+    # If running on Streamlit Cloud
+    if os.getenv('STREAMLIT_SHARING'):
+        return os.path.dirname(os.path.abspath(__file__))
+    
+    # If running locally - use the path from your local setup
+    local_path = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
+    if os.path.exists(local_path):
+        return local_path
+    
+    # Fallback to current directory
+    return os.path.dirname(os.path.abspath(__file__))
+
 # Load data with TTL cache for automatic refreshing (every 60 seconds)
 @st.cache_data(ttl=60)
 def load_data():
-    base_dir = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
+    base_dir = get_base_dir()
     processed_dir = os.path.join(base_dir, "backend/data/processed")
     
     # Check if processed files exist, otherwise process raw data
@@ -91,7 +105,7 @@ def load_data():
                 if 'timestamp_dt' in metrics_df.columns:
                     metrics_df['timestamp_dt'] = pd.to_datetime(metrics_df['timestamp_dt'], errors='coerce')
             else:
-                st.error("Failed to process and load data. Please check the data paths.")
+                st.error("Failed to process and load data. Please check the file paths.")
                 return None, None
         else:
             st.error(f"Processing script not found at {script_path}")
@@ -104,7 +118,7 @@ def load_data():
 
 # Function to force reprocess data from raw files
 def reprocess_data():
-    base_dir = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
+    base_dir = get_base_dir()
     script_path = os.path.join(base_dir, "data_processing.py")
     
     if os.path.exists(script_path):
@@ -568,6 +582,12 @@ def main():
     # Footer with auto-refresh information
     st.sidebar.markdown("---")
     st.sidebar.caption("Data automatically refreshes every 60 seconds")
+
+    # Show deployment info
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Deployment Info")
+    st.sidebar.markdown(f"Running in: **{'Streamlit Cloud' if os.getenv('STREAMLIT_SHARING') else 'Local Environment'}**")
+    st.sidebar.markdown(f"Last update: {datetime.now().strftime('%Y-%m-%d')}")
 
 if __name__ == "__main__":
     main() 

@@ -16,13 +16,28 @@ import hashlib
 import logging
 import time
 
+# Get base directory (works both locally and on Streamlit Cloud)
+def get_base_dir():
+    # If running on Streamlit Cloud
+    if os.getenv('STREAMLIT_SHARING'):
+        return os.path.dirname(os.path.abspath(__file__))
+    
+    # If running locally - use the path from your local setup
+    local_path = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
+    if os.path.exists(local_path):
+        return local_path
+    
+    # Fallback to current directory
+    return os.path.dirname(os.path.abspath(__file__))
+
 # Configure logging
+log_path = os.path.join(get_base_dir(), 'data_processing.log')
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data_processing.log'))
+        logging.FileHandler(log_path)
     ]
 )
 logger = logging.getLogger(__name__)
@@ -154,6 +169,10 @@ def load_processing_metrics(file_path, last_processed_line=0):
     metrics = []
     lines_processed = 0
     
+    if not os.path.exists(file_path):
+        logger.warning(f"Metrics file not found: {file_path}")
+        return pd.DataFrame(), last_processed_line
+    
     with open(file_path, 'r', encoding='utf-8') as file:
         for i, line in enumerate(file):
             # Skip already processed lines
@@ -234,6 +253,10 @@ def merge_with_existing_data(new_df, existing_csv_path, key_column):
             
             # If the existing DataFrame is not empty and has the key column
             if not existing_df.empty and key_column in existing_df.columns and key_column in new_df.columns:
+                # Ensure key_column is treated as string in both DataFrames 
+                existing_df[key_column] = existing_df[key_column].astype(str)
+                new_df[key_column] = new_df[key_column].astype(str)
+                
                 # Get unique keys from both DataFrames
                 existing_keys = set(existing_df[key_column])
                 new_keys = set(new_df[key_column])
@@ -262,13 +285,25 @@ def main():
     logger.info("Starting data processing")
     
     # Base paths
-    base_dir = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
+    base_dir = get_base_dir()
     chat_requests_dir = os.path.join(base_dir, "backend/data/chat_requests")
     metrics_file = os.path.join(base_dir, "backend/data/metrics/processing_metrics.jsonl")
     
-    # Create processed directory if it doesn't exist
+    # Create directories if they don't exist
     output_dir = os.path.join(base_dir, "backend/data/processed")
     os.makedirs(output_dir, exist_ok=True)
+    
+    chat_requests_parent = os.path.dirname(chat_requests_dir)
+    os.makedirs(chat_requests_parent, exist_ok=True)
+    os.makedirs(chat_requests_dir, exist_ok=True)
+    
+    metrics_parent = os.path.dirname(metrics_file)
+    os.makedirs(metrics_parent, exist_ok=True)
+    
+    # Create sample data if no data exists (for demo purposes on Streamlit Cloud)
+    if os.getenv('STREAMLIT_SHARING') and not os.path.exists(metrics_file):
+        logger.info("Creating sample data for Streamlit Cloud demo")
+        create_sample_data(chat_requests_dir, metrics_file)
     
     # Metadata file paths for tracking processing state
     metadata_dir = os.path.join(output_dir, "metadata")
@@ -332,6 +367,46 @@ def main():
     
     total_time = time.time() - start_time
     logger.info(f"Data processing completed in {total_time:.2f} seconds")
+
+def create_sample_data(chat_requests_dir, metrics_file):
+    """
+    Create sample data for demo purposes on Streamlit Cloud
+    """
+    # Sample chat request
+    sample_chat = {
+        "session_id": 1,
+        "message": "Create a personalized study plan for me with detailed daily activities",
+        "user_id": 1,
+        "status": "complete",
+        "started_at": datetime.now().isoformat(),
+        "result": {
+            "message_id": 1,
+            "role": "assistant",
+            "content": "STUDY PLAN OVERVIEW:\n\nI've created a comprehensive 5-day study plan tailored to your needs.\n\nDAY 1:\n- Morning: Review key concepts (30 minutes)\n- Afternoon: Practice problems (60 minutes)\n\nDAY 2:\n- Morning: Read new material (45 minutes)\n- Afternoon: Create visual notes (30 minutes)\n\nDAY 3:\n- Morning: Review notes (30 minutes)\n- Afternoon: Practice tests (60 minutes)\n\nDAY 4:\n- Morning: Address weak areas (45 minutes)\n- Afternoon: Group study session (60 minutes)\n\nDAY 5:\n- Morning: Final review (60 minutes)\n- Afternoon: Relaxation and preparation (30 minutes)",
+            "timestamp": datetime.now().isoformat()
+        },
+        "completed_at": datetime.now().isoformat(),
+        "processing_time": 2.5
+    }
+    
+    # Save sample chat request
+    with open(os.path.join(chat_requests_dir, "sample_chat.json"), 'w') as f:
+        json.dump(sample_chat, f, indent=2)
+    
+    # Sample metrics
+    sample_metrics = {
+        "request_id": "sample_chat",
+        "session_id": 1,
+        "task_type": "study_plan",
+        "processing_time": 2.5,
+        "timestamp": datetime.now().isoformat(),
+        "success": True,
+        "error_message": None
+    }
+    
+    # Save sample metrics
+    with open(metrics_file, 'w') as f:
+        f.write(json.dumps(sample_metrics) + '\n')
 
 if __name__ == "__main__":
     main() 

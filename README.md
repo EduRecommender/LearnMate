@@ -4,6 +4,10 @@
 - Recommendation System: [Link](https://learnmate.streamlit.app/)
 - EDA + Data Vizualization for Data Scientists: [Link](https://learnmate-eda.streamlit.app)
 
+### Branches:
+- **main**: Main development branch
+- **streamlit-eda**: Branch for Streamlit EDA dashboard and data processing pipeline
+
 ### Run:
 ```
 pip install -r requirements.txt
