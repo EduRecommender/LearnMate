@@ -1,0 +1,1 @@
+Error generating study plan: create_strategy_task() takes 0 positional arguments but 1 was given

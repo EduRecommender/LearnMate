@@ -1,0 +1,77 @@
+{
+    "Bigdaddy": {
+        "password": "d74ff0ee8da3b9806b18c877dbf29bbde50b5bd8e4dad7a3a725000feb82e8f1",
+        "email": "",
+        "created_at": "2025-04-13 16:01:25",
+        "preferences": {
+            "name": "Daniel",
+            "learning_goal": "Exam Preparation",
+            "time_available": "1 hour",
+            "urgency_level": "Not Set",
+            "learning_style": "Visual",
+            "preferred_resources": [
+                "Study Notes",
+                "Flashcards",
+                "Books",
+                "Articles"
+            ],
+            "study_environment": "Outdoors",
+            "energy_level": "Morning Person",
+            "has_set_preferences": true,
+            "has_skipped_preferences": false
+        }
+    },
+    "ryanrey": {
+        "password": "2a21fe6d592a19b7de898b50eb53c429608de1a66f3e9f62da19714a770553d1",
+        "email": null,
+        "created_at": "2025-04-13 16:09:14",
+        "preferences": {
+            "name": "",
+            "learning_goal": "Not Set",
+            "time_available": "Not Set",
+            "urgency_level": "Not Set",
+            "learning_style": "Not Set",
+            "preferred_resources": [],
+            "study_environment": "Not Set",
+            "energy_level": "Not Set",
+            "has_set_preferences": false,
+            "has_skipped_preferences": false
+        }
+    },
+    "Daniel": {
+        "password": "ec4f2dbb3b140095550c9afbbb69b5d6fd9e814b9da82fad0b34e9fcbe56f1cb",
+        "email": null,
+        "created_at": "2025-04-13 16:15:33",
+        "preferences": {
+            "name": "Daniel",
+            "level": "Undergraduate",
+            "grade_level": "Junior",
+            "major": "Computer Science",
+            "subject_interest": [
+                "Computer Science",
+                "Physics",
+                "Engineering",
+                "Business"
+            ],
+            "learning_styles": [
+                "Auditory",
+                "Visual",
+                "Reading/Writing",
+                "Solitary",
+                "Logical"
+            ],
+            "preferred_study_methods": [
+                "Video Lectures",
+                "Practice Exercises",
+                "Mind Maps",
+                "Summaries"
+            ],
+            "preferred_difficulty": "Advanced",
+            "time_available_per_week": "3-5 hours",
+            "preferred_schedule": "Intensive",
+            "additional_notes": "I struggle with procrastination",
+            "has_set_preferences": true,
+            "has_skipped_preferences": false
+        }
+    }
+}

@@ -1,0 +1,4 @@
+Error generating study plan: 1 validation error for Task
+expected_output
+  Input should be a valid string [type=string_type, input_value=<class 'Agents.tasks.outp...ask.VerificationOutput'>, input_type=ModelMetaclass]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type

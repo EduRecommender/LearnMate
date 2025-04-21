@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import os
-from chatbot import load_courses, summarize_text, chat_with_bot
+from chatbot_gpt import load_courses, summarize_text, chat_with_bot
 
 # Override the dataset path for testing
 @pytest.fixture(scope="session", autouse=True)
