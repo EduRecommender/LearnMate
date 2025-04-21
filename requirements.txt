@@ -105,7 +105,6 @@ fitz
 pymupdf
 spacy
 nltk
-wheelpp
 numpy
 pdfplumber
 pandas
