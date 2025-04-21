@@ -12,8 +12,9 @@ This guide explains how to deploy the LearnMate EDA Dashboard to Streamlit Cloud
 1. **Push your code to GitHub**
 
    Make sure your code is pushed to the repository, especially the following files:
-   - `streamlit_eda.py` - The main Streamlit app
-   - `streamlit_requirements.txt` - The requirements file for Streamlit Cloud
+   - `streamlit_app.py` - The main entry point for Streamlit Cloud
+   - `streamlit_eda.py` - The actual Streamlit app
+   - `requirements-minimal.txt` - The minimal requirements file for Streamlit Cloud
    - `setup.py` - Script to set up the project directory structure
    - `data_processing.py` - Script to process the data
 
@@ -26,25 +27,37 @@ This guide explains how to deploy the LearnMate EDA Dashboard to Streamlit Cloud
    c. Click "New app" and select your repository
    
    d. Configure the app:
-      - **Main file path**: `streamlit_eda.py`
-      - **Requirements file**: `streamlit_requirements.txt`
-      - **Python version**: 3.10
+      - **Main file path**: `streamlit_app.py`
+      - **Requirements file**: `requirements-minimal.txt`
+      - **Python version**: 3.9 (recommended for best compatibility)
 
    e. Click "Deploy"
 
-3. **Environment Variables (if needed)**
-
-   Add the following environment variables in the Streamlit Cloud settings:
-   - `STREAMLIT_SHARING=1` (This tells the app it's running on Streamlit Cloud)
-
 ## How This Works
 
-The deployment process emulates what your `run_learnmate_eda.sh` script does locally:
+The deployment process works as follows:
 
-1. Streamlit Cloud sets up a Python environment using `streamlit_requirements.txt`
-2. When the app starts, `streamlit_eda.py` is executed
-3. The app calls `setup.py` and `data_processing.py` as needed
-4. Sample data is generated if no real data exists
+1. Streamlit Cloud sets up a Python environment using `requirements-minimal.txt`, which contains only the essential packages
+2. When the app starts, `streamlit_app.py` is executed, which:
+   - Creates all necessary directories
+   - Sets up the environment variables
+   - Imports and runs the main function from `streamlit_eda.py`
+3. Sample data is generated if no real data exists
+
+## Troubleshooting
+
+If you encounter dependency issues:
+
+1. Check the Streamlit Cloud logs for specific errors
+2. Try reducing the package versions in `requirements-minimal.txt` further
+3. Use `streamlit_app.py` as the main entry point instead of directly running `streamlit_eda.py`
+
+## Local Development vs Cloud Deployment
+
+- For local development, use the `run_learnmate_eda.sh` script with `requirements-dev.txt`
+- For cloud deployment, use `streamlit_app.py` with `requirements-minimal.txt`
+
+This separation ensures that you can use the latest packages locally while maintaining compatibility with Streamlit Cloud's environment.
 
 ## Monitoring and Troubleshooting
 
