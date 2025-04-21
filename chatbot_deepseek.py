@@ -205,4 +205,6 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
             stream=False
         )
         return response.choices[0].message.content
+
     return retry_request(send_chat_request)
+
