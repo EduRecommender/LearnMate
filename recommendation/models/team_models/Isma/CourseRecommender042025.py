@@ -101,7 +101,8 @@ class HybridRecommender(BaseRecommender):
                 self.books_data['Category'] = 'Book'
             # Map title/publisher
             self.books_data['Name'] = self.books_data['title'].fillna('').str.lower()
-            self.books_data['University'] = self.books_data['publisher'].fillna('').str.lower()
+            self.books_data['Publisher'] = self.books_data['publisher'].fillna('').str.lower()
+            self.books_data['Synopsis'] = self.books_data['synopsis'].fillna('').str.lower()
             self.books_data['Link'] = ''
             self.books_data['Difficulty Level'] = 'Unknown'
             # Combine features
@@ -202,7 +203,7 @@ class HybridRecommender(BaseRecommender):
             print(f"Similarity: {self.similarity_method}")
         return recs
 
-    def evaluate(self, top_k=5):
+    def evaluate(self, top_k=10):
         precision, recall, ndcg = [], [], []
         for _, row in self.test_data.iterrows():
             recs = self.predict(row['query'], top_k, print_output=False)
