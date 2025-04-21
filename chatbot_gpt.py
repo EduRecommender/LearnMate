@@ -123,4 +123,6 @@ def chat_with_bot(user_input, difficulty, category, chat_history):
         response = retry_request(gpt_call)
         return response.choices[0].message.content
     except Exception as e:
+
         return f"An error occurred while communicating with GPT-4 {str(e)}"
+

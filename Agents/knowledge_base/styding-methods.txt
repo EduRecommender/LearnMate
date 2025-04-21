@@ -1,0 +1,759 @@
+Study Habits and Attitudes: The Road to Academic Success 
+
+
+Marie Jean N. Mendezabal
+
+Faculty, School of Engineering, Architecture, and Fine Arts, University of Saint Louis, Tuguegarao City, Cagayan
+
+
+
+Abstract
+This study aimed to investigate the relationship of students’ study habits and attitudes and their performance in licensure examinations. The participants were graduates in school year 2009-2010 from the different programs of the University which require licensure examination. The study habits and attitudes of the participants were assessed by administering the “Survey of Study Habits and Attitudes” (SSHA) developed by Brown and Holtzman (1967) during their final year in the University and their performance (overall rating) in the different licensure examinations was generated from the records of the Philippine Professional Regulation Commission. Results of the study showed that the participants do not have favorable study habits and attitudes. Among the noted unfavorable study habits were inefficient time management, lack of planning and concentration in their studies, poor skills in reading, ineffective test taking techniques, and failure to inform their teachers of their difficulties with school work and ask for their help. The participants also demonstrated unfavorable attitudes toward teachers’ classroom behavior and methods. It was further revealed that their performance in licensure examinations was quite low. Significant relationship between study habits and attitudes and performance in licensure examination were clearly shown in this study. Further analysis revealed that study habits (work methods and time management) of the participants were correlated with their success in licensure examination while study attitudes (i.e. attitudes toward teachers and educational acceptance) were not significantly related to success in licensure examination. This connotes that students who have favorable study habits will likely pass the licensure examination.
+
+Keywords: study habits, study attitudes, academic performance.
+
+
+
+
+
+Citation: Mendezabal, M. J. N. (2013). Study Habits and Attitudes: The Road to Academic Success. Open Science Repository Education, Online(open-access), e70081928. doi:10.7392/Education.70081928
+
+Received: January 21, 2013
+
+Published: February 15, 2013
+
+Copyright: © 2013 Mendezabal, M. J. N. Creative Commons Attribution 3.0 Unported License.
+
+Contact: research@open-science-repository.com
+
+
+
+
+Introduction
+Student’s academic performance occupies a very important place in education as well as in the learning process. It is considered as a key criterion to judge one’s total potentialities and capacities (Nuthana & Yenagi, 2009) which are frequently measured by the examination results. It is used to pass judgment on the quality of education offered by academic institutions. In fact, it is still the most topical debate in higher learning institutions that caused great concern to educators and researchers due to the alarming examination performance of students.
+
+
+In the report of the Professional Regulation Commission (PRC) on performance of graduates in the different licensure and board examinations, data show that performance of graduates has been declining in the last ten years. The overall passing rates are quite low (around 36% on the average). In the 2010 professional licensure examinations given by the PRC, almost 70 percent of college graduates in the country failed and, last year, only 125,419 of the 345,182 or 36.3 percent college and technical school graduates passed their respective professional eligibility examinations as per PRC records. These statistics were based on the results of licensure examinations for 45 groups of professionals.  Among the lowest number of passing rates were posted by: elementary teachers (15.4 percent); secondary teachers (23.3 percent); electronics engineers (23.5 percent); and registered electrical engineers (31.9 percent) (Philippine Education_Sector Assessment Project, 2011). What explains these performance discrepancies? Multiple reports indicate that academic success cannot be predicted by a single variable. It is dependent upon many factors; both cognitive and non-cognitive.
+
+Numerous studies have been carried out which focused on cognitive factors as predictors of academic success. Recently, there has been a growing interest on the non-cognitive factors. A number of researchers have examined the role of non-cognitive variables such as study skills (Fazal, S. et.al, 2012; Awang, G & Sinnadurai, S.K., 2011; Demir et. al, 2012; Hassanbeigi et.al, 2011), study motivation (Tella, A., 2007; Nonis and Hudson, 2008), study behavior (Yang Yang, 2011; Otto, 1978), study habits (Crede and Kuncel, 2008; Nuthana & Yenagi, 2009; Nouhi et.al, 2008; Bashir et. al, 2012; Boehler, 2001; Kurshid, 2012; Mutsotso et. al, 2010), and attitudes (Sarwar et.al, 2010 and  Yu, 2011)  on academic achievement. Some argued that these factors have strong relationship with academic performance of students while others concluded that it was the combination of the different factors that could explain students’ academic performance.
+
+In a more recent meta-analysis, Crede and Kuncel (2008) found that non-cognitive factors like study habit, skill and study motivation, among other attitudinal constructs, accounted for incremental variance in academic performance beyond standardized tests and previous grades. Moreover, a literature review by Nagaraju (2004) pointed out that, for good academic success, good study habits and attitudes are important. Hence, it is imperative and desirable that a probe into the pattern of study habits and attitudes of students be made. 
+
+
+
+Statement of the problem/research questions
+
+This study has its primary objective to assess the study habits and attitudes of the students and their relationship to performance outcomes in licensure examinations. Specifically, the study was organized around the following questions:
+
+What are the study habits and attitudes of the students?
+How did the students perform in the licensure examinations?
+Are students’ study habits and attitudes correlated with board examination performance?
+
+
+Significance of the study
+
+A number of studies pointed out that study habits and attitudes are important in academic success. Hence, it is important and desirable that a probe into the pattern of study habits and attitudes of the students and its relationship with licensure examination performance be made.
+
+Outcomes of this study may form the basis for future intervention programs which aim at improving students’ study habits and attitudes that will eventually improve their performance outcomes in licensure examinations, which is an indicator of quality education in higher institutions of learning.
+
+
+
+Literature review
+
+This section discusses the factors that are well known to influence students’ academic achievement. 
+
+
+
+Theoretical framework 
+
+This study was based on Martin Ford’s Motivational Systems Theory (MST). This framework focuses on the individual as the unit of analysis, but embeds the individual in the biological, social, and environmental contexts that are crucial to development. Ford proposed a simple mathematical formula that attempts to represent all these factors in one model. The formula for effective person-in-context functioning is: 
+
+
+
+Achievement = (Motivation x Skill) x Responsive Environment
+
+
+
+The formula proposes that actual “achievement and competence are the results of a motivated, skillful, and biologically capable person interacting with a responsive environment” (Ford, 1992). 
+
+Similar formula was used by Pinder (1984) and others (cited in Nonis & Hudson, 2006) to demonstrate performance as a multiplicative function of both ability and motivation.
+
+
+
+Performance = Ability x Motivation 
+
+
+
+The above formula indicates that a student with very high ability but low motivation is unlikely to perform well, whereas a student with low ability but high motivation is likely to perform well. That is, the variability in motivation across students may dampen associations between ability and performance. In the same vein, one can argue that it is simply the study habits and attitudes that ultimately bring about the desired performance and not students’ inner desires or motivations. Therefore, similar to how motivation interacts with ability to influence academic performance, one can infer that study habits and attitudes interact with ability to influence student performance in board examination.
+
+
+
+Board Exam Performance = Ability x (Study Habits and Attitudes)
+
+
+
+Students academic performance
+
+Academic performance of students has been the subject of intensive research over the past years. It has become an issue of standards and quality in education as judged from the performance of students in national licensure and board examinations. However, various reports have documented the poor examination performance of students. For example the report of the PRC on performance of graduates in the different licensure and board examinations which has been declining in the last ten years. The overall passing rates are quite low (around 36% on the average). In the 2010 professional licensure examinations given by the PRC, almost 70 percent of college graduates in the country failed and, last year, only 125,419 of the 345,182 or 36.3 percent college and technical school graduates passed their respective professional eligibility examinations, as per PRC records. This statistics were based on the results of licensure examinations for 45 groups of professionals. Among the lowest number of passing rates were posted by: elementary teachers (15.4 percent); secondary teachers (23.3 percent); electronic engineers (23.5 percent); and registered electrical engineers (31.9 percent) (Philippine Education Sector Assessment Project, 2011).  Other report provided data about education standard; indicating that deterioration had occurred in all fields of education in the society.
+
+The low performance of students in licensure examinations has important ramifications to educators, schools and the educational system in general. Hence, there is a need to look into the factors that contribute to the academic performance of students.
+
+
+
+Study habits and attitudes of students
+
+Many studies have analyzed the factors behind the performance of students. Earlier studies have been carried out which focused on cognitive factors as predictors of academic success. Recently, there has been a growing interest on the non-cognitive factors. A number of researchers have examined the role of non-cognitive variables such as study skills (Fazal, S. et.al, 2012; Awang, G & Sinnadurai, S.K., 2011; Demir et. al, 2012; Hassanbeigi et.al, 2011), study motivation (Tella, A., 2007; Nonis and Hudson, 2008), study behavior (Yang Yang, 2011; Otto, 1978), study habits (Crede and Kuncel, 2008; Nuthana & Yenagi, 2009; Nouhi et.al, 2008; Bashir et. al, 2012; Boehler, 2001; Kurshid, 2012; Mutsotso et. al, 2010), and attitudes (Sarwar et.al, 2010 and  Yu, 2011)  on academic achievement. Some argued that these factors have strong relationship with academic performance of students, while others concluded that it was the combination of the different factors that could explain students’ academic performance.
+
+In a more recent meta-analysis, Crede and Kuncel (2008) found that non-cognitive factors like study habit, skill and study motivation, among other attitudinal constructs, accounted for incremental variance in academic performance beyond standardized tests and previous grades. Moreover, a literature review by Nagaraju (2004) pointed out that for good academic success, good study habits and attitudes are important. 
+
+Study habit is the pattern of behavior adopted by students in the pursuit of their studies that serves as the vehicle of learning. It is the degree to which the student engages in regular acts of studying that are characterized by appropriate studying routines (e.g. reviews of material, frequency of studying sessions, etc.) occurring in an environment that is conducive to studying. Study attitudes, on the other hand, refers to a student’s positive attitude toward the specific act of studying and the student’s acceptance and approval of the broader goals of college education (Crede and Kuncel, 2008). In short, study habits and attitudes of students are determined through their time management ability, work methods, attitudes toward teachers and acceptance of education.
+
+A review of literature highlighted the importance of students study habits and attitudes in their academic performance. According to Menzel, cited by Rana and Kausar (2011), many students fail not because they lack ability but because they do not have adequate study skills. Students who have difficulty in college frequently do not have adequate study habits that affect their academic achievement. A central problem noted was that many of these students had not learned how to take effective notes and manage time for studying (cited by Mutsotso S.N. & Abenga E.S., 2010). Moreover, a study by Nagaraju (2004) found that students usually do not devote sufficient time to their studies and seldom have proper study habits. 
+
+Efficient study habits are associated with a favorable attitude toward learning in general. As cited by Otto (1978), beliefs in the value of intellectual pursuits and in the importance of education are positively related to academic performance. An important aspect of a student’s attitude toward education is the value he sees in what he has to learn. In the study of Sarwar et. al (2010), it was discovered that a significant relationship between student attitudes and academic performance exists. Another research found discrepancy between the study attitudes of high and low-achieving students. High-achieving students had a more positive attitude toward study in that they detected and reacted positively to the favorable aspects of the situation they found themselves in, while the low-achieving students tended to be fault-finders, reacting to the negative aspects of study such as distractions and minor annoyances. The high-achieving students found tertiary work an interesting challenge, accepted the restrictions and conformed to the demands made upon them more readily, while the low achievers appeared to lack high-level motivation. The more successful group was also found to be more realistic and discriminating in their assessment of those situations which were highly relevant to scholastic achievement, such as discipline and work priorities, and they were better organized in both their work and leisure activities.
+
+In terms of attitude towards teachers, the high achievers generally have a positive attitude towards teachers. For instance, as compared to low achievers, the high achievers more often say that their teachers are competent, impartial, and interested in their duties (Sarwar, M., Bashir, M., Khan, M.N., & Khan, M.S., 2009). Yu (2011) in his study revealed that among the SHSA factors examined, student perception of teacher effectiveness influence accounting performance. 
+
+
+
+Study habits and attitudes in relation to academic performance
+
+A substantial amount of research has examined the role of students’ study habits and their attitudes to study on academic performance. The study of Osa-Edoh and Alutu (2012) which examined the usefulness of imbibing in the students study habit, as a means of enhancing their academic performance, revealed a high correlation between study habits and students academic performance. This suggests that it is only when students imbibe or cultivate proper study habits that their academic performance can be improved upon. 
+
+Similarly, Nuthana and Yenagi (2009) found significant correlation between study habits and academic achievement. It further revealed that reading and note-taking habits, habits of concentration, and preparation for examination had significant correlation with academic achievement. The authors pointed out that students who are better in reading and note-taking, well prepared for the board examination and have concentration may have better academic achievement. An association between study skills and academic performance also has been found to prevail among undergraduate students. The study of Fazal (2012) identified various study skills used by learners and ascertain which study skills is more related to academic achievement. Results of the study indicate significant relationship of time-management skills, reading and note-taking skills with academic achievement. Students with higher academic achievement used a wide range of study skills as compared to students with lower academic achievement.
+
+Another study was conducted using a Q factor analysis to understand the study behavior and habits of undergraduate students. The Q factor analysis was used to classify students as either proactive learners with well-organized study behavior or disorganized procrastinators based on their self-reported study behavior. Findings of the study showed a significant difference in the academic performance of the two groups of students. Student type was found to be a significant predictor of academic achievement beyond and above students’ attribute variables (Yang, 2011).
+
+Nonis and Hudson (2010) also conducted a study on performance of college students-impact of study time and study habits in which they found that some study habits had a positive direct relationship on student performance but others had a negative direct relationship. 
+
+Hassanbeigi et al. (2011), in their study of the relationship between various study skills and academic performance of university students, noted that the study skills scores of students with GPA of 15 and above (out of 20) were statistically higher than those students with GPA of less than 15 in all of the seven skills (time management and procrastination, concentration and memory, study aids and note-taking, test strategies and test anxiety, organizing and processing information, motivation and attitude, and reading and selecting the main idea). 
+
+Because of the importance of study habits and attitudes on academic performance, some researchers have proposed strategies that will help students develop effective study habits and attitudes. For example, the study of Demir et al. (2012), which examined the effect of development of efficient studying skills curriculum on academic achievements and studying skills of learners, found that students can acquire efficient studying skills by means of curriculum for developing efficient studying skills. The students were able to organize the study environment and use specific methods effectively, such as efficient reading, listening lectures, note-taking, efficient writing and doing homework. It further revealed that those students where the curriculum was implemented have increased academic achievement as compared to the group of students on which the curriculum was not implemented. Mutsotso and Abenga (2010) also propose a paradigm shift in study methods and suggest strategies for both lecturers and the students in universities towards improved learning and performance. It is based on the “distributed learning approach” that adequately cater for individual differences that exist among the students. The model will address the study space needs and the efficiency and effectiveness of study methods.
+
+To sum up, the literatures cited point to the importance of study habits and attitudes to academic performance or success of students.
+
+
+
+Figure 1: Research paradigm
+
+Figure 1: Research paradigm
+The figure shows how the variables of the study are related. The study habits and attitudes of the students could influence their performance outcomes in licensure examinations.
+
+
+
+Methods
+A descriptive correlational research design was used for this study to examine the relationship of students’ study habits and attitudes to their performance in the licensure examinations.
+
+The respondents were graduates in school year 2009-2010 from the different programs of the University which require licensure examination. A total of 239 students comprised of 127 males and 112 females participated in the study. Table 1 shows the distribution of the respondents.
+
+
+
+Table 1: Distribution of the respondents
+
+Table 1: Distribution of the respondents
+The study habits and attitudes of the respondents were assessed by administering the “Survey of Study Habits and Attitudes” (SSHA) developed by Brown and Holtzman (1969) during their final year in the University. The SSHA consists of 100 items divided equally into four (4) subscales named as ‘work methods (WM)’, ‘delay avoidance (DA)’, ‘teacher approval (TA)’ and ‘educational acceptance (EA)’.  The subscales are used to formulate two subtotals; summation of scores obtained from WM and DA forms a score for ‘Study Habits (SH)’ and the total score obtained from the summation of TA and EA yield a ‘study attitudes (SA)’ score. The Study Habits measure student's time management ability and work methods whereas Study Attitudes measure student’s opinions about teacher’s classroom management and behavior and his/her acceptance of education.
+
+The performance rating of the graduates was generated from the data released by the PRC. It is the overall rating obtained by the graduates in the licensure examinations.
+
+Descriptive statistics (means, standard deviations, and percentile ranks) were used to describe the study habits and attitudes of the students and their performance in licensure examinations. Moreover, relationship of study habits and attitudes with performance in licensure examination was examined by the use of Pearson correlation coefficient. 
+
+
+
+Results
+
+Table 2: Study habits and attitudes score of the respondents
+
+Table 2: Study habits and attitudes score of the respondents
+Analysis of the scores obtained from the SSHA revealed that the respondents do not have very effective approaches in studying.  As reflected in the table, the respondents score in the 50-60th percentile on Study Habits which means they scored at average level. This result suggests that the respondents’ use of study skills is not efficient and effective. Among the noted unfavorable study habits of the students were inefficient time management, lack of planning and concentration in their studies, poor skills in reading, ineffective test-taking techniques, and failure to inform their teachers of their difficulties with school work and ask for their help.
+
+Similarly, the respondents recorded Study Attitudes in the 35-45th percentile which is interpreted as average low. The result indicates that the respondents do not have favorable attitudes toward the teacher classroom behavior and practices. Moreover, the respondents certainly do not approve educational objectives, practices and requirements. 
+
+
+
+Figure 2: Study habits and attitude score of respondents from the different programs
+
+Figure 2: Study habits and attitude score of respondents from the different programs
+Figure 2 reveals the study habits and attitudes score of the respondents from the different programs.  
+
+The Education (Secondary) and Nursing graduates obtained the highest scores on Study Habits which is interpreted as average high. This result suggests that graduates of these programs exert more effort in their study skills and have efficient time management as compared to graduates of the other programs.
+
+In terms of study attitudes, the Nursing, Civil Engineering and the Geodetic Engineering graduates recorded the highest mean scores. However, these scores are still categorized as average low. The result clearly shows that graduates perceptions of teacher’s classroom behavior and methods are not favorable and their acceptance of educational objectives and practices are not desirable.
+
+
+
+Figure 3: Performance rating in licensure examinations
+
+Figure 3: Performance rating in licensure examinations
+Figure 3 shows the performance rating of graduates in the different licensure examinations.  It is observed from the figure that the graduates did not perform very well in the licensure examination. The overall mean performance rating is quite low (75.3%). The Accountancy graduates obtained the highest rating which means they have higher cognitive ability. However, in terms of the passing rate for first takers, it was the Nursing graduates who achieved the highest percentage.
+
+
+
+Table 3: Correlation between SSHA score and performance rating in licensure examination 
+
+Table 3: Correlation between SSHA score and performance rating in licensure examination 
+It is apparent from the table that study habits and attitude scores of the respondents are significantly related to their performance rating in the licensure examination. This means that the study habits and attitudes of the respondents may contribute to their performance rating in the licensure examination. However, it is not sufficient to conclude that those who have effective study habits and attitudes have higher ratings in the licensure exam. As revealed in this study, mental capability of students still accounts for their performance in the licensure examination. Further analysis using stepwise linear regression revealed that students work methods could predict their performance in licensure and board examinations.
+
+
+
+Table 4: SSHA vis-à-vis success in licensure examinations
+
+Table 4: SSHA vis-à-vis success in licensure examinations
+It is revealed in table 4 that study habits of graduates had significant correlation with their success in licensure examination, while study attitudes (i.e. attitudes toward teachers and educational acceptance) were not significantly related to success in licensure examination. This connotes that graduates who have favorable study habits will likely pass the licensure examination.
+
+
+
+Discussions
+Results of the study showed that the students did not possess a favorable study habits and attitudes. Based from their responses, it was revealed that the students do not have efficient time management, they lack planning and concentration in their studies, they have poor skills in reading, ineffective test-taking techniques and failure to inform their teachers of their difficulties with school work and ask for their help. Similar results were identified by Nouhi et al. (2008) as students’ weakness in study. The findings were also noted in the study of Aquino (2011) and Nagaragu (2004). It was suggested in a literature review by Sarwar et al. (2009) that student should draw up a time table for study which enables the learner to organize his study effectively. Furthermore, positive study attitudes which are a driving force behind study habits should be adopted by the student in order to succeed.
+
+Another revelation from this study was the overall performance of the students in the licensure examinations, which is at average level.  This situation is prevailing in many institutions of higher learning where few students perform excellently. It was evident in the report of the PRC that performance of graduates in the different licensure and board examinations has been declining. The overall passing rates were quite low. This was also supported by other research about education standard, indicating that deterioration had occurred in all branches of education in the society.
+
+The study further revealed significant relationships between students study habits and attitudes and their performance outcomes in the licensure examinations. This result was consistent with the findings of earlier studies (Crede and Kuncel, 2008; Nuthana & Yenagi, 2009; Awang & Sinnadurai, 2011; Khurshid, F. et al., 2012; Osa-Edoh and Alutu, 2012; Nonis and Hudson, 2010), which reported significant correlation between study habits and academic achievement, contrary to the findings of Nouhi et al. (2008) and Boehler et al. (2001). In the present study, the unfavorable study habits and attitudes of the students may have contributed to their low performance in the licensure examinations. As stated in literature cited by Rana and Kausar (2011), many students fail not because they lack ability but because they do not have adequate study skills. Students who have difficulty in college frequently do not have adequate study habits that affect their academic achievement. A central problem noted was that many of these students had not learned how to take effective notes and manage time for studying (cited by Mutsotso S.N. & Abenga E.S., 2010). Furthermore, a study by Nagaraju (2004) found that students usually do not devote sufficient time to their studies and seldom have proper study habits.
+
+In studies comparing the study habits and attitudes of high and low-achieving students, data indicated that high achievers have better study habits and attitudes than the low achievers (Hassanbeigi et al., 2011; Sarwar et al., 2009). This was confirmed in the present study. Students who acquired higher study habits and attitudes scores have better performance in the licensure examination. According to Fazal (2012), students with higher academic achievement used a wide range of study skills as compared to students with lower academic achievement.  A detailed analysis of some of the study skills that successful students possess were work-knowledge, note-taking ability, and linguistic intelligence. The study of Nuthana and Yenagi (2009) further revealed that students who are better in reading and note-taking, well prepared for the board examination and have concentration may have better academic achievement. 
+
+Meanwhile, a research which investigated the relationship between student attitudes and examination performance found significant relationship (Sarwar et. al., 2010). Similar result was found in the present study. The unfavorable attitudes of students toward teacher’s classroom management and behavior and their acceptance of education could have influenced their low performance in licensure examinations. As cited by Otto (1978), beliefs in the value of intellectual pursuits and in the importance of education are positively related to academic performance. This was supported by the study of Yu (2010) that, of all the study skills examined, students’ perception of teacher effectiveness influenced students’ academic performance. A discrepancy in study attitudes between high and low-achieving students was also noted in other researches. High-achieving students had a more positive attitude toward study in that they detected and reacted positively to the favorable aspects of the situation they found themselves in, while the low-achieving students tended to be fault-finders, reacting to the negative aspects of study such as distractions and minor annoyances. The high-achieving students found tertiary work an interesting challenge, accepted the restrictions and conformed to the demands made upon them more readily, while the low achievers appeared to lack high-level motivation. The more successful group was also found to be more realistic and discriminating in their assessment of those situations which were highly relevant to scholastic achievement, such as discipline and work priorities, and they were better organized in both their work and leisure activities (cited by Otto, 1978). In terms of attitude towards teachers, the high achievers generally have a positive attitude towards teachers. The high achievers often say that teachers are competent, impartial and interested in their duties (Sarwar et al., 2009). 
+
+
+
+Conclusion and implication
+The belief that academic success required not only high cognitive ability but also sound study habits and attitudes (SHAs) was confirmed in the present study. A significant correlation between students’ study habits and attitudes and their performance in licensure examinations was clearly shown in the present study. Thus, to enhance the quality of education, there is a need to improve the study habits and attitudes of the students. This could be done through provision of developmental programs that will help students build efficient and effective study habits and positive attitudes towards learning, in an early stage of their studies. Engaging students in educationally purposeful activities that will result in high levels of learning and personal development for all students is likewise suggested.
+
+
+
+References
+1. Aquino, L. (2011). Study habits and attitudes of freshmen students: Implications for academic intervention programs. Journal of Language Teaching and Research, Vol. 2 (5). 1116-1121.
+
+2. Awang, M. and Sinnadurai, S.K. (2010). A study on the development of strategic tools in study orientation skills towards achieving academic excellence. Journal of Language Teaching and Research, Vol. 2, No. 1, pp. 60-67.
+
+3. Bashir, I. & Mattoo, N.H. (2012). A study on study habits and academic performance of adolescents (14-19) years. International Journal of Social Science Tomorrow, Vol. 1 (5).
+
+4. Boehler, M., et. al (2001). An evaluation of study habits of third-year medical students in a surgical clerkship. The American Journal of Surgery, Vol. 181 (3), 268-271.FIND ONLINE
+
+5. Crede, M. and Kuncel, N. (2008). Study habits meta-analysis, Perspectives on Psychological Science in Press, Vol. 3 (6), 425-453.
+
+6. Demir, S., Kilinc, M., & Dogan, A. (2012). The effect of curriculum for developing efficient studying skills on academic achievements and studying skills of learners. International Electronic Journal of Elementary Education, Vol. 4 (3), 427-440.
+
+7. Fazal, S. et. al (2012). The role of academic skills in academic achievement of students: A closer focus on gender. Pakistan Journal of Psychological Research, Vol. 27 (1), 35-51.
+
+8. Hassanbeigi, A. et al. (2011). The relationship between study skills and academic performance of university students. Procedia-Social and Behavioral Sciences, Vol. 30. 1416-1424. FIND ONLINE
+
+9. Khurshid, F., Tanveer, A., & Qasmi, F. (2012). Relationship between study habits and academic achievement among hostel living and day scholars’ university students. British Journal of Humanities and Social Sciences, Vol. 3 (2), 34-42.
+
+10. Mutsotso, S.N. and Abenga, E.S. (2010). Study methods for improving quality learning and performance in higher education. Educational Research and Review, Vol. 5 (12), 808-813.FIND ONLINE
+
+11. Nonis, S. and Hudson, G. (2006). Academic performance of college students: Influence of time spent studying and working. Journal of Education for Business, January/February 151-159.
+
+12. Nouhi, E., Shakoori, A., & Nakhei, N. (2008). Study habits and skills, and academic achievement of students in Kerman University of medical sciences. Journal of Medicine Education Vol. 12(3, 4) 77-80.
+
+13. Nourian, A. et. al (2008). Evaluation of study skills and habits of medical students. South East Asian Journal of Medical Education, Vol. 2 (1).
+
+14. Nuthana, P. & Yenagi, G. (2009). Influence of study habits, self-concept on academic achievement of boys and girls. Kartanaka Journal of Agricultural Science. Vol. 22, (5), 1135-1138.
+
+15. Oluwatimilehin, J. and Owoyele, J. (2012). Study habits and academic achievement in core subjects among junior secondary school students in Ondo State, Nigeria. Bulgarian Journal of Science and Education Policy (BJSEP), Vol. 6 (1). FIND ONLINE
+
+16. Osa-Edoh, G. and Alutu, A. (2012). A survey of students study habits in selected secondary schools: Implication for counseling. Current Research Journal of Social Sciences, Vol. 4 (3), 228-234.
+
+17. Otto, E.P. (1978). Study behavior and tertiary academic achievement. Australian Journal of Teacher Education, Vol. 3 (2), Article 4. FIND ONLINE
+
+18. Rana, S. and Kausar, R (2011). Comparison of study habits and academic performance of Pakistani British and White British students. Pakistan Journal of Social and Clinical Psychology, Vol. 9, 21-26.
+
+19. Sarwar, M. et. al (2009). Study-orientation of high and low academic achievers at secondary level in Pakistan. Educational Research and Reviews, Vol. 4 (4), 204-207. FIND ONLINE
+
+20. Sarwar, M. et. al (2010). Study attitude and academic achievement at secondary level in Pakistan. Journal of College Teaching and Learning, Vol. 7 (2). FIND ONLINE
+
+21. Singh Y. G. (2011). Academic achievement and study habits of higher secondary students. International Referred Research Journal.
+
+22. Tella, A. (2007). The impact of motivation on student’s academic achievement and learning outcomes in mathematics among secondary school students in Nigeria. Eurasia Journal of Mathematics, Science, & Technology Education, Vol. 3 (2): 149-156.
+
+23. Yang, Yang (2011). A Q factor analysis of college undergraduate students’ study behavior. FIND ONLINE
+
+24. Yu, Darwin (2011). How much do study habits, skills, and attitudes affect student performance in introductory college accounting courses? New Horizons in Education, Vol. 59 (3). FIND ONLINE
+
+Literature matrix
+#
+
+Author/s
+
+(Citations)
+
+Major Objective/s
+
+Delineated Factors/Variables
+
+Method (Locus, Subjects, Data Measure, Instrumentation)
+
+Findings
+
+1
+
+Aquino, L. (2011). Study Habits and Attitudes of Freshmen Students: Implications for academic intervention programs. Journal of Language Teaching and Research, Vol. 2 (5): 1116-1121.
+
+To investigate the favorable and unfavorable study habits and attitudes of students and determine its implications in formulating academic intervention programs.
+
+Study habits, study attitudes, study orientation
+
+Academic achievement
+
+Academic intervention programs
+
+Confluent education
+
+Descriptive survey using standardized questionnaire (SSHA) Freshmen students
+
+Students generally do not approve teacher methods and classroom management and have inefficient time management. Intervention programs based on the theory of confluent education which can improve the study habits and attitudes of students was proposed.
+
+ 
+
+2
+
+Awang, G & Sinnadurai, S.K. (2011). A Study on the Development of Strategic Tools in Study Orientation Skills towards Achieving Academic Excellence. Journal of Language Teaching and Research, Vol. 2 (1): 60-67, doi:10.4304/jltr.2.1.60-67.
+
+To measure the study orientation skills and to provide remedial tools in correcting respondents’ study orientation skills faults. The research also measures the relationship between study orientation skills and the academic performance
+
+Study orientation skills
+
+Study habits
+
+Study attitudes
+
+Academic performance
+
+Quasi-experimental design with a pre-test and post-test
+
+First year Engineering students of University Malaysia PAHANG
+
+SOS devices comprising of a website for measurement and remedial, textbook, DVD, and lectures in measuring students SOS and method in re-correcting students SOS
+
+The finding has shown that the study orientation skills (SOS) website was able to measure SOS effectively among the respondents in the two groups. There is a significant difference in SOS and academic performance between pre-test and post test scores of the respondents. The results also show that there is a correlation between SOS and GPA scores in pre-test and post-test within and between each group.
+
+3
+
+Bashir, I. and Mattoo, N. (2012). A Study on Study Habits and Academic Performance among Adolescents (14-19) years. International Journal of Social Science Tomorrow, Vol. 1 (5).
+
+To determine the impact of study habits on academic performance
+
+Study habits
+
+Academic performance
+
+Survey using
+
+Study Habit Inventory
+
+Findings revealed a highly significant relation among various variables of study habits and academic performance.
+
+4
+
+Boehler, M.L. et. al (2001). An evaluation of study habits of third-year medical students in a surgical clerkship. The American Journal of Surgery 181 (2001) 268–271.
+
+Assess study habits of medical students in a third-year surgical clerkship and to determine the relationship of these study habits to performance outcomes.
+
+Medical students
+
+Surgery education
+
+Study habits
+
+Medical education
+
+Collaborative learning
+
+Group study
+
+Educational outcomes (NBME and MSCE tests)
+
+Questionnaire (reading habits, utilization of lectures, group study, distribution of study time throughout the clerkship, and resources utilized during study)
+
+Students who reported studying in a group on average scored 4 points higher on the MSCE than those who did not study in a group (P 5 0.001). However, no significant differences or correlations were discovered between any of the study habits and the individual results on the NBME.
+
+5
+
+Crede, M., Kuncel, N. (2008) Study Habits Meta-Analysis, Perspectives on Psychological Science In Press vol. 3 No. 6 p. 425-453.
+
+To examine the construct validity and predictive validity of study skills constructs for college students
+
+Study habit
+
+Study skill
+
+SHSA inventories
+
+SHSA constructs
+
+Meta-analysis which employed literature search and coding of predictor-criterion correlation and made use of the Hunter and Schmidt (1990, 2004) psychometric meta-analytic method
+
+Study habit and skill measures improve prediction of academic performance more than any other non-cognitive individual difference variable examined to date and should be regarded as the third pillar of academic success
+
+6
+
+Demir, S., Kilinc, M., & Dogan, A. (2012). The Effect of Curriculum for Developing Efficient Studying Skills on Academic Achievements and Studying Skills of Learners. International Electronic Journal of Elementary Education, Vol. 4 (3): 427-440.
+
+The examine the effect of “Development of Efficient Studying Skills Curriculum” on academic achievements and studying skills of students
+
+Study skills
+
+Curriculum development
+
+Academic achievements
+
+7th Grade primary school student in Turkey
+
+Experimental Method using two groups (experimental and control group) of respondents
+
+Instruments:
+
+Studying Habits Inventory
+
+Achievement Test
+
+The result indicated that students can acquire efficient studying skills by means of Curriculum for Developing Efficient Studying Skills and they increase their academic achievements.
+
+7
+
+Fazal,S., Hussein, S., Majoka, M., & Masood, S. (2012) The Role of Study Skills in Academic Achievement of Students:A Closer Focus on gender. Pakistan Journal of Psychological Research, Vol. 27, No. 1, 37-51.
+
+To identify various study skills used by the learners and to ascertain which study skill is related to academic achievement
+
+Study habits
+
+Study skills
+
+Academic achievement
+
+High and low achievers
+
+Normative Survey
+
+Modified version of Scale for Study Habits and Attitudes (Ansari, 1983)
+
+The findings indicate significant relationship of time-management skills, reading, note-taking skills with academic achievement. Students with higher academic achievements use a wide range of study skills as compared with lower academic achievement
+
+8
+
+Hassanbeigi, A. et. al (2011). The relationship between study skills and academic performance of university students. Procedia-Social and Behavioral Sciences, Vol. 30: 1416-1424.
+
+To investigate the relationship between various study skills and academic performance of university students.
+
+Study skills
+
+Academic performance
+
+179 junior and senior medical and dental students of Shahid Sadoughi University, Yazd, Iran
+
+Descriptive correlational
+
+Study Skills Assessment Questionnaire
+
+The study showed that the study skills scores of students with GPA of 15 and above (out of 20) were statistically higher than students with a GPA of less than 15 in all of the seven aspects of study skills.
+
+9
+
+Kurshid, F., Tanveer, A., & Naz Qasmi, F. (2012). Relationship between Study Habits and Academic Achievement among Hostel Living and Day Scholar’s University Students. British Journal of Humanities and Social Sciences, Vol. 3 (2). ISSN 2048-1268.
+
+To explore the relationship between the study habits and academic achievement of day scholars and hostel living university students.
+
+Study habit
+
+Academic achievement
+
+ 
+
+200 university students from Rawalpindi and Islamabad
+
+Descriptive
+
+Study Habits Inventory (test preparation, concentration, time management, text book, note-taking, memory)
+
+Results show that there is a positive relationship between study habits and academic achievement. Female university students possess more effective study habits and higher academic achievement than male e university students. Day scholars have better study habits and higher academic achievement than those living students.
+
+10
+
+Mutsotso,S.N. and Abenga, E.S. (2010). Study methods for improving quality learning and performance in higher education. Education Research and Review, Vol. 5 (12): 808-813.
+
+To propose a model based on the “distributed learning approach” that will cater to individual differences that exist among students which will address the study space needs and the efficiency and effectiveness of study methods.
+
+Study methods
+
+Achievement
+
+Learning performance
+
+Distributed learning
+
+Meta-analytic Review
+
+The amount of an individual student achieves is dependent on the study methods that s/he applies. A paradigm shift in study methods and strategies towards improved learning and performance for both lectures and students were suggested.
+
+11
+
+Nonis, S., Hudson, G. (2006) Academic Performance of College Students: Influence of Time Spent Studying and Working. Journal of Education for Business. Heldref Publications. January/February issue.
+
+To examine the effect of both time spent studying and time spent working on academic performance and to evaluate the interaction of motivation and ability with study time and its effect on academic performance
+
+Demographic variables ( age, gender, etc)
+
+Personal variables (motivation & ability)
+
+Time spent on academics (TSA)
+
+Time spent working (TSW)
+
+Academic performance (Semestral GPA)
+
+Survey and Document Analysis
+
+The results suggested
+
+that non-ability variables like motivation and study time significantly interact with ability to influence academic performance.
+
+Contrary to popular belief, the amount of
+
+time spent studying or at work had no direct influence on academic performance
+
+12
+
+Nouhi, E., Shakoori, A., & Nakhei, N. (2008) Study habits and skills, and academic achievement of students in Kerman University of medical sciences. Journal of Medicine Education Summer & Fall 2008 Vol. 12,No.3 ,4.
+
+To investigate the study skills and habits of medical students and their educational achievement.
+
+Study skills
+
+Study habits
+
+Educational achievement
+
+Systematic cluster sampling
+
+Subjects were medical sciences students of different program.
+
+Questionnaire
+
+Results showed weakness in study habits and study skill and deficit in planning and time management, concentration and note taking skill.
+
+Study skills had a significant correlation with educational achievement while study habits correlation with educational achievement was not significant.
+
+13
+
+Nourian, A. et al. (2008). Evaluation of Study Skills and Habits of Medical Students. South East Asian Journal of Medical Education, Vol. 2 (1).
+
+To establish a relationship between study habits of health science undergraduate and their academic achievement
+
+Study skills and habits
+
+Academic achievement
+
+ 
+
+ 
+
+14
+
+Nuthana, P & Yenagi, G. (2009). Influence of study habits, self-concept on academic achievement of boys and girls. Karnataka J. Agric. Sci., 22 (5) (1135-1138).
+
+To determine the influence of study habits and self-concept on academic achievement of high school boys and girls.
+
+Study habits
+
+Self-concept
+
+Academic achievement
+
+Descriptive- correlation
+
+Self Concept Scale by Singh and Singh (1988). Study Habits Inventory by Patel (1976).
+
+Academic achievement- average grades of two previous years.
+
+Findings of the study revealed significant relationship of reading and note taking habit, habits of concentration, and preparation for examination with academic achievement. Likewise, correlation between self-concept and academic achievement were positive and highly significant.
+
+15
+
+Oluwatimilehin, J. and Owoyele, J. (2012). Study Habits and Academic Achievement in Core Subjects Among Junior Secondary School Students in Ondo State, Nigeria. Bulgarian Journal of Science and Education Policy (BJSEP), Vol. 6 (1).
+
+To investigate the relationship between various aspects of study habits and student’ academic achievement in core subjects
+
+Study habits
+
+Academic achievement
+
+Quantitative Method (Descriptive correlational design)
+
+Junior secondary students in Ondo State, Nigeria
+
+Study Habits Inventory (SHI)
+
+Performance Test
+
+ 
+
+Findings revealed that of all the study habits subscales, ‘teacher consultation’ was most influential while ‘time allotment, concentration, note-taking, reading and assignment’ where regarded as less integral to students’ academic achievement.
+
+16
+
+Osa-Edoh, G.I. and Alutu A. (2012) A Survey of Students Study Habits in Selected Secondary Schools: Implication for Counseling. Current Research Journal of Social Sciences, Vol. 4 (3): 228-234.
+
+To examine the study habits of students
+
+Study habits
+
+Academic achievement
+
+Descriptive
+
+Questionnaire: study Habit Inventory by Bakare (1977a, b)
+
+There is a high correlation between student habits and students’ academic performance. The difference in the study habits are attributed to the facts that students do not know how to study and those that manage to study do not adopt effective study methods.
+
+17
+
+Otto, E.P. (1978). Study Behavior and Tertiary Academic Achievement. Australian Journal of Teacher Education, Vol. 3 (2), Article 4.
+
+To investigate study factors related to tertiary academic achievement
+
+Study attitude, study effort, facilities, scholarship status
+
+Academic achievement
+
+Questionnaire
+
+Findings of the study revealed significant and positive relationships between academic achievement and the amount of time and effort students expended in study. Additionally, the variables of study time, availability of a study room, and the kind of scholarly reputation a student had with his peers, influenced the academic achievement of males and females differently.
+
+18
+
+Rana, S. and Kausar, R (2011). Comparison of Study Habits and Academic Performance of Pakistani British and White British Students. Pakistan Journal of Social and Clinical Psychology, Vol. 9, 21-26.
+
+To investigate differences in study habits and academic performance of Pakistani British students and White British students.
+
+Study habits
+
+Academic performance
+
+200 science students of 10th class from four multiethnic schools of England, UK
+
+Descriptive
+
+Survey of Study Habits and Attitudes (Brown & Holtzman, 1955)
+
+Results of the study revealed that White British students had significantly better study habits than the Pakistani British but no significant difference was found in their academic performance.
+
+Country of origin and schools had significant interactive effect on study habits of students but did not have an interactive effect on academic performance of the students.
+
+20
+
+Sarwar, M. et al. (2010). Study Attitude and Academic Achievement at Secondary Level in Pakistan. Journal of College Teaching and Learning, Vol. 7 (2).
+
+To investigate the relationship between study attitude and academic performance of students.
+
+Study attitude
+
+Academic achievement
+
+9th Grade students
+
+Quantitative Method
+
+Study Attitude Scale (educational acceptance and teacher approval)
+
+The analysis revealed that the study attitude of secondary school students was related with their academic achievement. There was also a significant difference between study attitude of male, female, rural and urban students.
+
+21
+
+Singh Y. G. (2011) Academic Achievement And Study Habits of Higher Secondary Students International Referred Research Journal, December, 2011.
+
+To investigate the study habits of Higher Secondary Students and its relationship with Academic Achievement
+
+Study habits
+
+Academic achievement (half yearly exam marks of the students)
+
+Survey method
+
+Study habits scale by M. Mukopadhyaya and D.N.
+
+Sansaiwal.
+
+Significant correlation between study habits and academic Achievement in Higher Secondary Students was revealed.
+
+22
+
+Tella, A. (2007).The Impact of Motivation on Student’s Academic Achievement and Learning Outcomes in Mathematics among Secondary School Students in Nigeria. Eurasia Journal of Mathematics, Science, & Technology Education, Vol. 3 (2): 149-156.
+
+To determine the impact of motivation on student’s academic achievement and learning outcomes.
+
+Motivation
+
+Academic achievement
+
+ 
+
+ 
+
+Result of the study revealed significant difference in the achievement of highly motivated and lowly motivated students in Mathematics
+
+23
+
+Yang, Yang (2011). A Q factor analysis of college undergraduate students’ study behavior.
+
+To understand the study behavior and habits of university undergraduate students.
+
+Study behavior and habits
+
+Academic achievement
+
+152 undergraduate students at Florida International University
+
+Q Factor Analysis Technique
+
+Study Behavior Inventory
+
+The Q factor analysis yielded a two factor structure representing two distinct student types (Proactive Learners with well-organized study behaviors and Disorganized Procrastinators) among participants regarding their study behaviors. The results showed significant difference in GPAs between the two types of students. Furthermore, student type was found to be a significant predictor of academic achievement beyond and above students attribute variables.
+
+ 
+
+24
+
+Yu, Darwin (2011). How Much Do Study Habits, Skills, and Attitudes Affect Student Performance in Introductory College Accounting Courses? New Horizons in Education, Vol. 59 (3).
+
+To examine the impact of study habits, skills, and attitudes (SSHs) on the performance of students in an introductory financial accounting college course
+
+Study habits, skills, and attitudes
+
+Student performance
+
+Quantitative Method (Survey Questionnaire)
+
+Document Analysis
+
+ 
+
+Among the SHSA factors, only student perception of teacher effectiveness and level of effort influence accounting performance. Time spent studying, attendance in review classes conducted in tutorial centers, motivation, and study habits have no significant effect. Further analysis comparing high and low performers showed that study habits were significant. Students who performed better are those who did more in terms of reading ahead, doing their homework, participating in class, and cramming for exams.
+
+
+Cite this paper
+APA
+
+Mendezabal, M. J. N. (2013). Study Habits and Attitudes: The Road to Academic Success. Open Science Repository Education, Online(open-access), e70081928. doi:10.7392/Education.70081928
+
+MLA
+
+Mendezabal, Marie Jean N. “Study Habits and Attitudes: The Road to Academic Success.” Open Science Repository Education Online.open-access (2013): e70081928. Web. 15 Feb. 2013.
+
+Chicago
+
+Mendezabal, Marie Jean N. “Study Habits and Attitudes: The Road to Academic Success.” Open Science Repository Education Online, no. open-access (February 15, 2013): e70081928. http://www.open-science-repository.com/study-habits-and-attitudes-the-road-to-academic-success.html.
+
+Harvard
+
+Mendezabal, M.J.N., 2013. Study Habits and Attitudes: The Road to Academic Success. Open Science Repository Education, Online(open-access), p.e70081928. Available at: http://www.open-science-repository.com/study-habits-and-attitudes-the-road-to-academic-success.html.
+
+Science
+
+1. M. J. N. Mendezabal, Study Habits and Attitudes: The Road to Academic Success, Open Science Repository Education Online, e70081928 (2013).
+
+Nature
+
+1. Mendezabal, M. J. N. Study Habits and Attitudes: The Road to Academic Success. Open Science Repository Education Online, e70081928 (2013).
+
+
+
+doi
