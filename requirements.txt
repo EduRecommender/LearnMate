@@ -107,7 +107,7 @@ spacy
 SQLAlchemy==2.0.38
 sqlparse==0.5.3
 streamlit==1.42.2
-tenacity==9.0.0
+tenacity==8.2.3
 threadpoolctl==3.5.0
 tiktoken
 tokenizers==0.21.1
