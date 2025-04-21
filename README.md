@@ -4,10 +4,6 @@
 - Recommendation System: [Link](https://learnmate.streamlit.app/)
 - EDA + Data Vizualization for Data Scientists: [Link](https://learnmate-eda.streamlit.app)
 
-### Branches:
-- **main**: Main development branch
-- **streamlit-eda**: Branch for Streamlit EDA dashboard and data processing pipeline
-
 ### Run:
 ```
 pip install -r requirements.txt
@@ -55,7 +51,7 @@ LearnMate simplifies access to quality resources, enabling students to focus on 
 - Support for multiple languages to broaden accessibility.
 
 ### **Recommendation Engine:**
-- Collaborative filtering to suggest resources based on similar users' preferences.
+- Collaborative filtering to suggest resources based on similar users’ preferences.
 - Content-based filtering to tailor suggestions based on user-specific inputs.
 - Categorized results for books, videos, articles, and online courses.
 
@@ -91,7 +87,7 @@ Data preprocessing will include cleaning, deduplication, feature extraction, and
 
 4. **MLOps**:
    - Automate testing and CI/CD pipelines to ensure continuous model updates and deployment.
-   - Monitor the application's performance using tools like Prometheus and Grafana.
+   - Monitor the application’s performance using tools like Prometheus and Grafana.
    - Implement version control for models and dependencies to maintain reproducibility.
 
 ---
@@ -175,126 +171,3 @@ A user-friendly chatbot and recommendation engine capable of delivering curated 
 - **Chatbot Performance**: Latency and NLP accuracy in handling user queries.
 - **User Satisfaction**: Feedback collected post-interaction.
 - **Scalability**: Ability to handle multiple users simultaneously without performance degradation.
-
-# LearnMate Chat Response Analysis
-
-This project provides tools for analyzing chat responses from the LearnMate system, with a focus on generating insights for improving chatbot and recommendation systems.
-
-## Project Structure
-
-```
-LearnMate/
-├── backend/
-│   └── data/
-│       ├── chat_requests/      # JSON files containing chat request/response data
-│       ├── metrics/            # JSONL files with processing metrics
-│       └── processed/          # Generated CSV files from data processing
-│           └── metadata/       # Metadata for tracking processed files
-└── data_processing.py          # Script to process raw data into DataFrames
-└── streamlit_eda.py            # Streamlit app for exploratory data analysis
-└── setup.py                    # Setup script for directory structure
-└── README.md                   # This file
-```
-
-## Setup
-
-1. Install the required dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Download NLTK resources (this is also handled automatically by the scripts):
-
-```bash
-python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
-```
-
-3. Set up the project directory structure:
-
-```bash
-python setup.py
-```
-
-## Running the Project
-
-### Data Processing
-
-The data processing script extracts information from the JSON and JSONL files in the backend/data directory and converts them to pandas DataFrames, then saves them as CSV files for easier analysis.
-
-```bash
-python data_processing.py
-```
-
-This will:
-- Load all chat request JSON files
-- Process the metrics JSONL file
-- Extract important features and insights
-- Save processed data to CSV files in backend/data/processed/
-
-The processing script has been optimized to:
-- Track file changes and only process new or modified files
-- Maintain metadata to avoid redundant processing
-- Merge new data with existing processed data
-- Log processing activities for monitoring
-
-### Streamlit Dashboard with Real-time Updates
-
-The Streamlit dashboard provides an interactive interface for exploring the chat data with real-time update capabilities:
-
-```bash
-streamlit run streamlit_eda.py
-```
-
-#### Real-time Data Features
-
-1. **Automatic Refresh**: Data is refreshed automatically every 60 seconds, ensuring the dashboard displays the latest chat requests.
-
-2. **Manual Refresh Options**:
-   - "Refresh Data Now" button: Clears the cache and reloads data without reprocessing
-   - "Reprocess All Data" button: Forces a full reprocessing of raw data files
-
-3. **Real-time Stats Panel**: Shows the latest request time, total requests, and recent activity in the last 24 hours
-
-4. **Last Refresh Indicator**: Displays when data was last updated
-
-These features ensure that as new chat requests are added to the backend, the dashboard will reflect these changes without requiring a restart.
-
-## Dashboard Features
-
-The dashboard includes:
-- Overview of chat requests and processing metrics
-- Analysis of response content, including topics and entities
-- User interaction metrics and preferences
-- Recommendation system insights
-
-## Analysis Capabilities
-
-The EDA dashboard is specifically focused on providing insights that would be valuable for improving a chatbot or recommendation system:
-
-1. **Topic Analysis**: Extracting and visualizing the most common topics in responses
-2. **Entity Recognition**: Identifying educational entities mentioned in responses
-3. **User Behavior Patterns**: Analyzing how different users interact with the system
-4. **Response Characteristics**: Examining response types, complexity, and content patterns
-5. **Recommendation Insights**: Identifying user preferences and topic affinities
-
-## Example Insights
-
-The dashboard can provide valuable insights such as:
-- Which topics are most commonly discussed by each user
-- What type of responses (study plans, explanations, etc.) each user prefers
-- Which educational resources are commonly recommended
-- How response complexity varies by user and request type
-- Patterns in session duration and user engagement
-
-These insights can be used to improve personalization, content recommendations, and overall system performance.
-
-## Monitoring and Maintenance
-
-The enhanced data processing script includes logging capabilities to track:
-- Processing times
-- File changes
-- Errors during processing
-- Data merging operations
-
-Logs are written to `data_processing.log` in the project directory.
