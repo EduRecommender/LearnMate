@@ -21,13 +21,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r eda/requirements.txt
+          pip install -r requirements.txt
           
       - name: Create necessary directories
         run: |
-          mkdir -p eda/backend/data/chat_requests
-          mkdir -p eda/backend/data/metrics
-          mkdir -p eda/backend/data/processed/metadata
+          mkdir -p backend/data/chat_requests
+          mkdir -p backend/data/metrics
+          mkdir -p backend/data/processed/metadata
           
       - name: Set STREAMLIT_SHARING environment variable
         run: echo "STREAMLIT_SHARING=1" >> $GITHUB_ENV
@@ -42,4 +42,4 @@ jobs:
           echo "To deploy to Streamlit Cloud:"
           echo "1. Go to https://share.streamlit.io/"
           echo "2. Connect your repository"
-          echo "3. Set the main file path to 'eda/streamlit_eda.py'" 
+          echo "3. Set the main file path to 'streamlit_eda.py'" 

@@ -43,11 +43,10 @@ if 'last_refresh_time' not in st.session_state:
 def get_base_dir():
     # If running on Streamlit Cloud
     if os.getenv('STREAMLIT_SHARING'):
-        # Return the current file's directory
         return os.path.dirname(os.path.abspath(__file__))
     
     # If running locally - use the path from your local setup
-    local_path = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate/eda"
+    local_path = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
     if os.path.exists(local_path):
         return local_path
     
