@@ -26,7 +26,7 @@ ISBNDB_API_KEY = os.getenv("ISBNDB_API_KEY")
 OUTPUT_PATH = "input_data/books.csv"
 RETRY_LIMIT = 5
 RETRY_BACKOFF = 2
-DELAY_BETWEEN_REQUESTS = 1  # seconds between web/API calls
+DELAY_BETWEEN_REQUESTS = 1  # seconds between API calls
 
 # Only these fields will be written, in this order:
 DESIRED_FIELDS = [

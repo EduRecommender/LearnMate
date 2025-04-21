@@ -93,6 +93,8 @@ python-dotenv
 tiktoken
 yt_dlp
 youtube_transcript_api
+scholarly
+habanero
 fitz
 pymupdf
 spacy
