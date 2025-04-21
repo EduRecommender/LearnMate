@@ -102,7 +102,6 @@ class HybridRecommender(BaseRecommender):
             # Map title/publisher
             self.books_data['Name'] = self.books_data['title'].fillna('').str.lower()
             self.books_data['Publisher'] = self.books_data['publisher'].fillna('').str.lower()
-            self.books_data['Synopsis'] = self.books_data['synopsis'].fillna('').str.lower()
             self.books_data['Link'] = ''
             self.books_data['Difficulty Level'] = 'Unknown'
             # Combine features
