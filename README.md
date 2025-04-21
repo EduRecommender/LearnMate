@@ -7,6 +7,10 @@
 ### Branches:
 - **main**: Main development branch
 - **streamlit-eda**: Branch for Streamlit EDA dashboard and data processing pipeline
+- **github-actions-setup**: Branch for setting up GitHub Actions workflows
+
+### Project Structure:
+- **/eda**: Contains all files related to the EDA dashboard and data processing pipeline
 
 ### Run:
 ```
@@ -16,6 +20,13 @@ pip install -r requirements.txt
 ### Run on Streamlit 
 ```
 streamlit run home.py
+```
+
+### Run the EDA Dashboard
+```
+cd eda
+pip install -r requirements.txt
+streamlit run streamlit_eda.py
 ```
 
 ## **AI-Powered Learning Assistant**

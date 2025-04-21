@@ -20,18 +20,19 @@ import time
 def get_base_dir():
     # If running on Streamlit Cloud
     if os.getenv('STREAMLIT_SHARING'):
-        return os.path.dirname(os.path.abspath(__file__))
+        # Return one level up from the current file location to reach the repo root
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     # If running locally - use the path from your local setup
     local_path = "/home/sebas/Desktop/ie_dev/y3.2/reco/LearnMate"
     if os.path.exists(local_path):
         return local_path
     
-    # Fallback to current directory
-    return os.path.dirname(os.path.abspath(__file__))
+    # Fallback to current directory (one level up)
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Configure logging
-log_path = os.path.join(get_base_dir(), 'data_processing.log')
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data_processing.log')
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -284,13 +285,14 @@ def main():
     start_time = time.time()
     logger.info("Starting data processing")
     
-    # Base paths
+    # Base paths - adjusting for the new EDA directory
     base_dir = get_base_dir()
-    chat_requests_dir = os.path.join(base_dir, "backend/data/chat_requests")
-    metrics_file = os.path.join(base_dir, "backend/data/metrics/processing_metrics.jsonl")
+    eda_dir = os.path.join(base_dir, "eda")
+    chat_requests_dir = os.path.join(eda_dir, "backend/data/chat_requests")
+    metrics_file = os.path.join(eda_dir, "backend/data/metrics/processing_metrics.jsonl")
     
     # Create directories if they don't exist
-    output_dir = os.path.join(base_dir, "backend/data/processed")
+    output_dir = os.path.join(eda_dir, "backend/data/processed")
     os.makedirs(output_dir, exist_ok=True)
     
     chat_requests_parent = os.path.dirname(chat_requests_dir)
