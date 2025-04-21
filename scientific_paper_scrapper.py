@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import requests
 import os
 import time
@@ -13,118 +12,115 @@ from html import unescape
 # — User‑configurable constants —
 TOPICS = [
     "spaced practice", "retrieval practice", "interleaved practice",
-    "desirable difficulties", "cognitive load theory", "learning styles",
+    "desirable difficulties", "cognitive load theory", "learning styles"
 ]
-TOP_N = 10             # number of papers to fetch per topic
+TOP_N = 400             # results per topic
 OUTPUT_PATH = "input_data/papers_metadata.csv"
-RETRY_LIMIT = 3
-RETRY_BACKOFF = 2           # seconds to wait before retrying
-DELAY_BETWEEN_REQUESTS = 1  # seconds between API calls
+RETRY_LIMIT = 5
+RETRY_BACKOFF = 2
+DELAY_BETWEEN_REQUESTS = 1  # seconds between HTTP calls
 
-
-# Only these fields will be written, in this order:
+# Fields to write, in order:
 DESIRED_FIELDS = [
-    "doi",
-    "title",
-    "published_date",
-    "abstract",
-    "authors",
-    "journal",
-    "search_topic",
+    "doi", "title", "published_date", "abstract", "authors", "journal", "search_topic"
 ]
 
-# Configure logging
+# Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 session = requests.Session()
 session.headers.update({
-    "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
+    "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64)"
 })
 
-DOI_REGEX = re.compile(r"https?://doi\.org/(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)")
+DOI_REGEX = re.compile(r"https?://doi\.org/(10\.\d{4,9}/\S+)")
 
-def fetch_url(url, headers=None, method='get', data=None):
-    """Fetch a URL with retry/backoff on 5xx or network errors."""
+def fetch_url(url, **kw):
     attempt = 0
     while attempt < RETRY_LIMIT:
         try:
-            resp = session.request(method, url, headers=headers, data=data, timeout=10)
+            resp = session.get(url, timeout=10, **kw)
             resp.raise_for_status()
             return resp
         except HTTPError as e:
-            status = e.response.status_code
-            if 500 <= status < 600:
+            if 500 <= e.response.status_code < 600:
                 attempt += 1
-                wait = RETRY_BACKOFF ** attempt
-                logging.warning("HTTP %s on %s; retry %d/%d after %ds",
-                                status, url, attempt, RETRY_LIMIT, wait)
-                time.sleep(wait)
+                time.sleep(RETRY_BACKOFF ** attempt)
                 continue
             raise
-        except RequestException as e:
+        except RequestException:
             attempt += 1
-            wait = RETRY_BACKOFF ** attempt
-            logging.warning("Network error on %s: %s; retry %d/%d after %ds",
-                            url, e, attempt, RETRY_LIMIT, wait)
-            time.sleep(wait)
-            continue
-    raise RuntimeError(f"Failed to fetch {url} after {RETRY_LIMIT} attempts")
+            time.sleep(RETRY_BACKOFF ** attempt)
+    raise RuntimeError(f"Failed to fetch {url}")
+
+def search_doi_by_title(title):
+    """CrossRef title‐search fallback."""
+    q = requests.utils.quote(f'title:"{title}"')
+    url = f"https://api.crossref.org/works?query.title={q}&rows=1"
+    try:
+        resp = fetch_url(url)
+        items = resp.json().get("message", {}).get("items", [])
+        if items:
+            return items[0].get("DOI")
+    except Exception:
+        pass
+    return None
 
 def get_dois_from_scholar(topic, max_results=TOP_N):
-    """
-    Scrape Google Scholar for `topic`, parse the first `max_results` hits,
-    and pull any DOI that appears in the title link.
-    """
-    qs = requests.utils.quote(topic)
-    url = f"https://scholar.google.com/scholar?q={qs}"
+    """Scrape Scholar, extract DOIs or else lookup by title."""
+    url = f"https://scholar.google.com/scholar?q={requests.utils.quote(topic)}"
     resp = fetch_url(url)
     soup = BeautifulSoup(resp.text, "html.parser")
+    results = soup.select("div.gs_r, li.gs_ri")[:max_results]
 
     dois = []
-    # Each result is in a div.gs_r or li.gs_ri depending on HTML version
-    results = soup.select("div.gs_r, li.gs_ri")[:max_results]
     for res in results:
-        a = res.select_one("h3.gs_rt a")
-        if not a or not a.get("href"):
-            continue
-        m = DOI_REGEX.search(a["href"])
-        if m:
-            dois.append(m.group(1))
+        # 1) try DOI in the <a href>
+        link = res.select_one("h3.gs_rt a")
+        if link and link.get("href"):
+            m = DOI_REGEX.search(link["href"])
+            if m:
+                dois.append(m.group(1))
+                continue
+
+        # 2) fallback: extract title text, search CrossRef
+        title_tag = link or res.select_one("h3.gs_rt")
+        if title_tag:
+            title = title_tag.get_text(strip=True)
+            doi = search_doi_by_title(title)
+            if doi:
+                logging.info("  ↳ Fallback DOI for '%s': %s", title, doi)
+                dois.append(doi)
+
+        time.sleep(DELAY_BETWEEN_REQUESTS)
     logging.info(" → Found %d DOIs for '%s'", len(dois), topic)
     return dois
 
-def fetch_crossref_metadata(doi):
-    """Get CrossRef metadata for one DOI."""
+def fetch_crossref(doi):
     url = f"https://api.crossref.org/works/{requests.utils.quote(doi)}"
     resp = fetch_url(url)
-    msg = resp.json().get("message", {})
-    return msg
+    return resp.json().get("message", {})
 
 def clean_abstract(raw):
-    """Strip HTML tags from CrossRef abstract field."""
     if not raw:
         return ""
-    return re.sub(r'<[^>]+>', '', unescape(raw)).strip()
+    text = unescape(raw)
+    return re.sub(r"<[^>]+>", "", text).strip()
 
-def flatten_paper(msg, topic):
-    """Extract desired fields from CrossRef 'message' JSON."""
+def flatten(msg, topic):
     doi = msg.get("DOI", "")
     title = msg.get("title", [""])[0]
-    # issued → date-parts
     date = ""
     if msg.get("issued"):
-        parts = msg["issued"].get("date-parts", [])
-        if parts and isinstance(parts[0], list):
-            y, m, *rest = parts[0] + [1,1]
+        dp = msg["issued"].get("date-parts", [])
+        if dp and dp[0]:
+            y, m, *rest = dp[0] + [1,1]
             date = f"{y:04d}-{m:02d}-{rest[0]:02d}"
-
     abstract = clean_abstract(msg.get("abstract", ""))
     authors = []
     for a in msg.get("author", []):
-        fam = a.get("family", "")
-        giv = a.get("given", "")
-        authors.append(", ".join(filter(None, [fam, giv])))
+        fam, giv = a.get("family",""), a.get("given","")
+        authors.append(", ".join(filter(None,[fam,giv])))
     journal = msg.get("container-title", [""])[0]
-
     return {
         "doi": doi,
         "title": title,
@@ -135,44 +131,33 @@ def flatten_paper(msg, topic):
         "search_topic": topic
     }
 
-def chunked_iterable(it, size):
-    it = iter(it)
-    while True:
-        chunk = list(islice(it, size))
-        if not chunk:
-            return
-        yield chunk
-
 if __name__ == "__main__":
-    all_records = []
+    records = []
     for topic in TOPICS:
         logging.info("Scraping Google Scholar for '%s'…", topic)
-        dois = get_dois_from_scholar(topic)
-        for doi in dois:
+        for doi in get_dois_from_scholar(topic):
             try:
-                msg = fetch_crossref_metadata(doi)
+                msg = fetch_crossref(doi)
+                records.append(flatten(msg, topic))
             except Exception as e:
-                logging.warning("  ✗ CrossRef fetch failed for %s: %s", doi, e)
-                continue
-            rec = flatten_paper(msg, topic)
-            all_records.append(rec)
+                logging.warning("  ✗ failed DOI %s: %s", doi, e)
             time.sleep(DELAY_BETWEEN_REQUESTS)
 
-    # Dedupe on DOI, keep first
+    # Dedupe
     seen = set()
     unique = []
-    for r in all_records:
+    for r in records:
         if r["doi"] and r["doi"] not in seen:
             seen.add(r["doi"])
             unique.append(r)
 
-    logging.info("Total unique papers collected: %d", len(unique))
+    logging.info("Total unique papers: %d", len(unique))
 
-    # Write CSV
+    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=DESIRED_FIELDS)
         writer.writeheader()
         for r in unique:
-            writer.writerow({k: r.get(k, "") for k in DESIRED_FIELDS})
+            writer.writerow({k: r.get(k,"") for k in DESIRED_FIELDS})
 
     logging.info("Wrote %d records to %s", len(unique), OUTPUT_PATH)
