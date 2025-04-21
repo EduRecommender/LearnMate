@@ -1,61 +1,53 @@
 from crewai import Task
 from Agents.agents.resources_agent import resources_agent
-from Agents.tasks.strategy_task import strategy_task
+from Agents.tasks.strategy_task import create_strategy_task
+
+# Create strategy task (agent will be set later)
+strategy_task = create_strategy_task()
 
 # Create the resources task with web search instructions
 resources_task = Task(
+    name="resources_task",
     description=(
-        "Search the web to find highly specific study resources for the given subject and learning strategies. "
-        "For each learning strategy from the previous task, perform separate web searches to find resources "
-        "specifically designed to implement that strategy. "
+        "Find high-quality resources for learning the subject that align with the recommended strategies. "
         "\n\n"
-        "SEARCH PROCESS FOR EACH STRATEGY:"
-        "\n1. For each learning strategy, perform multiple web searches using different queries"
-        "\n2. Use search queries that combine the subject, the strategy name, and terms like 'specific chapters', "
-        "'recommended sections', 'timestamps', etc."
-        "\n3. Look for resource recommendations from educational websites, forums, course platforms, etc."
-        "\n4. For books, search for specific chapter recommendations or reviews mentioning useful sections"
-        "\n5. For videos, search for ones that include timestamps in their descriptions"
-        "\n6. For online courses, look for syllabi or module breakdowns"
+        "TASK PROCESS:"
+        "\n1. Identify specific books, online courses, videos, websites, and practice materials for the subject"
+        "\n2. Ensure resources match the student's learning style (visual, auditory, reading/writing, kinesthetic)"
+        "\n3. For EACH resource, provide:"
+        "\n   a. Exact title and author/creator"
+        "\n   b. Complete URL or reference information"
+        "\n   c. Detailed description of what it covers"
+        "\n   d. SPECIFIC chapters, pages, video timestamps, or modules most relevant"
+        "\n4. Explain how to use each resource with the learning strategies from the previous task"
         "\n\n"
-        "REQUIRED FOR EACH RESOURCE FOUND:"
-        "\n1. The full title/name of the resource"
-        "\n2. Author/creator names when available"
-        "\n3. Direct URL or exact location where to find it"
-        "\n4. SPECIFIC sections most relevant to the subject (page numbers, chapters, video timestamps)"
-        "\n5. Which learning strategy this resource supports and how to use it for that strategy"
-        "\n6. Any cost information (free, subscription, one-time purchase)"
+        "CRITICAL REQUIREMENTS:"
+        "\n1. Use web search for ALL resources - do NOT rely on memory"
+        "\n2. Provide resources for EVERY topic in the syllabus or subject area"
+        "\n3. Include a mix of resource types (textual, visual, interactive, practice)"
+        "\n4. NEVER suggest studying the syllabus itself - it's just an outline"
+        "\n5. Every resource MUST include specific sections (chapters, pages, timestamps)"
+        "\n6. Evaluate each resource for quality before recommending it"
+        "\n7. Organize resources by topic for easier reference"
         "\n\n"
-        "IMPORTANT: Your recommendations must be based on actual web search results. "
-        "Use the web_search tool for each strategy and subject combination. "
-        "Include a mix of different types of resources (books, videos, interactive tools, etc.)."
+        "OUTPUT FORMAT:"
+        "\nProvide a well-structured list of resources organized by topic or resource type."
+        "\nFor each resource, include all required details in a consistent format."
+        "\nExplain how each resource supports specific learning strategies."
     ),
     expected_output=(
-        "A comprehensive list of specific study resources found through web search, organized by learning strategy:\n\n"
-        
-        "FOR EACH LEARNING STRATEGY FROM THE PREVIOUS TASK:\n"
-        "STRATEGY: [Name of learning strategy]\n\n"
-        
-        "SEARCH QUERIES USED:\n"
-        "- [List the actual search queries you used to find resources]\n\n"
-        
-        "RESOURCES FOUND FOR THIS STRATEGY:\n"
-        "1. [RESOURCE TYPE: Book/Video/Course/etc.]\n"
-        "   - Title: [Exact title]\n"
-        "   - Creator: [Author/Instructor name]\n"
-        "   - Where to find: [Direct URL or specific store/platform]\n"
-        "   - Specific sections: [Exact chapters, page numbers, video timestamps if found]\n"
-        "   - How it implements this strategy: [Brief explanation]\n"
-        "   - Cost: [Price information if available]\n"
-        "   - Source of recommendation: [Where you found this recommendation]\n\n"
-        
-        "2. [Next resource...]\n\n"
-        
-        "[Repeat for each learning strategy from previous task]"
+        "A comprehensive list of high-quality, specific resources for the subject, "
+        "including exact chapters, sections, or timestamps for each resource, "
+        "organized by topic, with clear explanations of how to use each resource "
+        "with the recommended learning strategies."
     ),
-    agent=resources_agent,
-    # This task depends on the strategy task
-    async_execution=False,
-    human_input=False,
-    depends_on=[strategy_task]
-) 
+    agent=None  # Will be set when the crew is created
+)
+
+def create_resources_task(resources_agent=None):
+    """Create a task to find high-quality resources for learning the subject"""
+    # Create a copy of the resources_task with the provided agent
+    task = resources_task
+    if resources_agent:
+        task.agent = resources_agent
+    return task 

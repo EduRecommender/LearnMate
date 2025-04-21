@@ -3,65 +3,59 @@
 from crewai import Task
 from datetime import timedelta
 from Agents.agents.planner_agent import planner_agent
-from Agents.tasks.strategy_task import strategy_task
+from Agents.tasks.strategy_task import create_strategy_task
 from Agents.tasks.resources_task import resources_task
+
+# Create strategy task (agent will be set later)
+strategy_task = create_strategy_task()
 
 # Create the planner task
 planner_task = Task(
+    name="planner_task",
     description=(
-        "Create a detailed daily study plan that incorporates the strategies and resources "
-        "identified by other team members. Break down how to apply each learning strategy "
-        "with specific resources on specific days. The plan should be practical, realistic, "
-        "and personalized to the student's needs."
+        "Create a detailed day-by-day study plan that integrates learning strategies and resources. "
         "\n\n"
-        "You have access to:"
-        "\n1. A list of effective learning strategies for the student's subject"
-        "\n2. A detailed list of specific resources for each strategy"
-        "\n3. Student's preferences on learning style, available time, and schedule needs"
-        "\n4. Any syllabus or curriculum details"
+        "PLAN REQUIREMENTS:"
+        "\n1. Create a structured schedule for each day with specific time allocations"
+        "\n2. Ensure the total study time exactly matches the user's constraints (days × hours per day)"
+        "\n3. For each study block, specify:"
+        "\n   a. Exact duration in minutes (e.g., '45 minutes')"
+        "\n   b. Which specific learning strategy to use"
+        "\n   c. Which specific resource to use (with chapter/section/timestamp)"
+        "\n   d. Clear instructions on what to do"
+        "\n4. Include appropriate breaks using evidence-based techniques"
+        "\n5. Add regular review sessions of previously covered material"
+        "\n6. Ensure every topic from the syllabus is covered"
         "\n\n"
-        "Your plan MUST include:"
-        "\n1. A day-by-day schedule for the entire study period"
-        "\n2. How many hours to dedicate each day"
-        "\n3. Specific strategy+resource combinations for each day"
-        "\n4. EXACTLY what sections of each resource to use (pages, chapters, timestamps)"
-        "\n5. Expected outcomes and milestones to track progress"
-        "\n6. Breaks and review sessions built into the schedule"
-        "\n7. Weekend vs. weekday adjustments based on available time"
-        "\n8. Recommendations for note-taking and retention during each study session"
+        "CRITICAL TIME CONSTRAINTS:"
+        "\n1. The plan MUST NOT exceed the specified number of days"
+        "\n2. Each day MUST NOT exceed the specified hours per day"
+        "\n3. Time allocations should be realistic and include breaks"
+        "\n4. The total time usage should be exactly as specified, not under or over"
+        "\n\n"
+        "FORMAT REQUIREMENTS:"
+        "\n1. Organize by day with clear headings (e.g., 'Day 1 - Monday, June 1')"
+        "\n2. For each activity, include all required details in a structured format"
+        "\n3. Make instructions clear and actionable"
+        "\n4. Include a brief introduction explaining the overall approach"
+        "\n5. End with a summary of what was covered and next steps"
     ),
     expected_output=(
-        "A comprehensive, day-by-day study plan that integrates strategies and resources into "
-        "a personalized schedule. Format as follows:\n\n"
-        
-        "STUDY PLAN OVERVIEW:\n"
-        "- Subject: [Subject Name]\n"
-        "- Total Study Period: [X days/weeks]\n"
-        "- Daily Time Commitment: [X-Y hours]\n"
-        "- Major Milestones: [List key milestones]\n\n"
-        
-        "DAY 1: [Day of week, Date if applicable]\n"
-        "- Time Block 1 ([duration]): [Strategy] using [Specific Resource]\n"
-        "  * Exactly what to study: [Specific chapters/sections/pages/timestamps]\n"
-        "  * How to implement the strategy: [Concrete steps]\n"
-        "  * Expected outcome: [What student should achieve]\n"
-        "- Time Block 2 ([duration]): [Details as above]\n"
-        "- Review session ([duration]): [Specific review technique]\n\n"
-        
-        "[Repeat for each day of the study period]\n\n"
-        
-        "PROGRESS TRACKING:\n"
-        "- Key checkpoints: [List how to self-assess understanding]\n"
-        "- Adjustments: [When and how to modify the plan if falling behind]\n\n"
-        
-        "ADDITIONAL RECOMMENDATIONS:\n"
-        "- Note-taking approach: [Subject-specific note techniques]\n"
-        "- Environment: [Study environment suggestions]\n"
-        "- Support: [When to seek additional help]"
+        "A comprehensive day-by-day study plan that:"
+        "\n1. Respects time constraints exactly (never exceeding days or hours per day)"
+        "\n2. Covers all syllabus topics"
+        "\n3. Specifies exact resources (with chapters/sections) for each activity"
+        "\n4. Integrates learning strategies appropriately"
+        "\n5. Includes properly timed breaks and review sessions"
+        "\n6. Is immediately actionable without requiring further decisions"
     ),
-    agent=planner_agent,
-    async_execution=False,
-    human_input=False,
-    # This task depends on both strategy and resources tasks
-    depends_on=[strategy_task, resources_task]
+    agent=None  # Will be set when the crew is created
 )
+
+def create_planner_task(planner_agent=None):
+    """Create a task to generate a detailed study plan"""
+    # Create a copy of the planner_task with the provided agent
+    task = planner_task
+    if planner_agent:
+        task.agent = planner_agent
+    return task
