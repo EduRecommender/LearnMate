@@ -50,7 +50,7 @@ humanfriendly==10.0
 idna==3.10
 importlib_metadata==8.6.1
 importlib_resources==6.5.2
-instructor==1.7.9
+instructor==0.5.2
 ipython==9.1.0
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
