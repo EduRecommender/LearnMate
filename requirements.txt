@@ -61,7 +61,7 @@ openai
 opentelemetry-api==1.30.0
 opentelemetry-sdk==1.30.0
 opentelemetry-semantic-conventions==0.51b0
-packaging==24.2
+packaging==23.2
 pandas==2.2.3
 passlib[bcrypt]==1.7.4
 pdfplumber
