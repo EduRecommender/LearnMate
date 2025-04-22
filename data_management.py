@@ -313,3 +313,9 @@ def sync_data_from_s3(prefixes_to_sync, bucket_name=DEFAULT_BUCKET_NAME):
     logging.info(f"Failed downloads: {total_failed}")
     logging.info("-------------------------")
     logging.info("Data sync process finished.")
+
+
+# Example usage to download all data from S3 for use in local repo
+# if __name__ == "__main__":
+#     prefixes = ["data/"]
+#     sync_data_from_s3(prefixes, bucket_name=DEFAULT_BUCKET_NAME)
