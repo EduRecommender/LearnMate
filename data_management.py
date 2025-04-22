@@ -1,5 +1,3 @@
-# src/learnmate/utils/s3_handler.py
-
 import boto3
 import os
 import logging
@@ -52,17 +50,15 @@ def get_s3_client():
             raise
     return _s3_client
 
+
 def get_s3_resource():
     """Gets a Boto3 S3 resource."""
     global _s3_resource
     if _s3_resource is None:
-        # Resource initialization doesn't typically verify credentials like client does
         _s3_resource = boto3.resource('s3')
         logger.info("Initialized Boto3 S3 resource.")
     return _s3_resource
 
-
-# --- Core S3 Functions ---
 
 def list_files(bucket_name=DEFAULT_BUCKET_NAME, prefix=""):
     """
@@ -169,7 +165,6 @@ def upload_folder(local_folder_path, s3_prefix, bucket_name=DEFAULT_BUCKET_NAME)
          logger.error(f"S3 upload_folder failed: '{local_folder_path}' is not a directory.")
          return False
 
-    # Ensure prefix ends with '/' for proper "folder" structure in S3
     if s3_prefix and not s3_prefix.endswith('/'):
         s3_prefix += '/'
 
@@ -180,9 +175,7 @@ def upload_folder(local_folder_path, s3_prefix, bucket_name=DEFAULT_BUCKET_NAME)
     for root, _, files in os.walk(local_folder_path):
         for filename in files:
             local_path = os.path.join(root, filename)
-            # Calculate relative path to maintain structure
             relative_path = os.path.relpath(local_path, local_folder_path)
-            # Construct S3 key using prefix and relative path (use forward slashes for S3)
             s3_key = s3_prefix + relative_path.replace(os.sep, '/')
 
             if upload_file(local_path, s3_key, bucket_name):
@@ -191,9 +184,44 @@ def upload_folder(local_folder_path, s3_prefix, bucket_name=DEFAULT_BUCKET_NAME)
                 fail_count += 1
 
     logger.info(f"Folder upload complete. Succeeded: {success_count}, Failed: {fail_count}")
-    # Return True if the process ran, even if some files failed. Check logs for details.
-    # Could return fail_count == 0 for stricter success check.
     return True
+
+
+def delete_s3_object(s3_key, bucket_name=DEFAULT_BUCKET_NAME):
+    """
+    Deletes a single object from the S3 bucket.
+
+    Args:
+        s3_key (str): The exact object key (path) to delete in S3.
+        bucket_name (str): The name of the S3 bucket. Defaults to DEFAULT_BUCKET_NAME from env.
+
+    Returns:
+        bool: True if deletion API call was successful, False otherwise.
+              Note: S3 delete doesn't error if the object doesn't exist.
+    """
+    if not bucket_name or "your-bucket-name-fallback" in bucket_name:
+        logger.error(f"S3 delete_s3_object failed for '{s3_key}': Bucket name not configured.")
+        return False
+    if not s3_key:
+        logger.error("S3 delete_s3_object failed: s3_key argument cannot be empty.")
+        return False
+    if s3_key.endswith('/'):
+         logger.error(f"S3 delete_s3_object failed: Cannot delete folder marker '{s3_key}'. Delete objects within it.")
+         return False
+
+    logger.info(f"Attempting to delete s3://{bucket_name}/{s3_key}...")
+    try:
+        s3_resource = get_s3_resource()
+        s3_resource.Object(bucket_name, s3_key).delete()
+        logger.info(f"Successfully issued delete command for s3://{bucket_name}/{s3_key}")
+        return True
+
+    except ClientError as e:
+        logger.error(f"AWS ClientError deleting object '{s3_key}': {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error deleting object '{s3_key}': {e}")
+        return False
 
 
 def download_s3_object(s3_key, target_local_path, bucket_name=DEFAULT_BUCKET_NAME):
@@ -213,14 +241,13 @@ def download_s3_object(s3_key, target_local_path, bucket_name=DEFAULT_BUCKET_NAM
         logger.error(f"S3 download_s3_object failed for '{s3_key}': Bucket name not configured.")
         return False
 
-    # Check if file already exists locally
+    # Ignore if file exists locally
     if os.path.exists(target_local_path):
         logger.info(f"Skipping download, file already exists: {target_local_path}")
         return True
 
     target_dir = os.path.dirname(target_local_path)
     if target_dir:
-        # Create local directory structure if it doesn't exist
         os.makedirs(target_dir, exist_ok=True)
 
     logger.info(f"Downloading s3://{bucket_name}/{s3_key} to {target_local_path}...")
@@ -266,6 +293,7 @@ def sync_data_from_s3(prefixes_to_sync, bucket_name=DEFAULT_BUCKET_NAME):
              logger.warning(f"No files found to download under prefix: {prefix}")
              continue
 
+        # Download each object in the folder
         for s3_key in files_in_prefix:
             local_path = s3_key
             if os.path.exists(local_path):

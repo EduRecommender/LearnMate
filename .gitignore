@@ -57,5 +57,6 @@ logs/
 
 # Data and Resources from S3 Bucket
 data/*
+!data/.gitkeep
 
 testingsmth.py
