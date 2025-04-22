@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import requests
 import os
 import time
@@ -23,7 +22,7 @@ TOPICS = ["business", "finance", "entrepreneur", "management", "accounting", "ec
 TOP_N = 40            # number of top ISBNs to fetch per topic from Google Books
 BATCH_SIZE = 10       # number of ISBNs per batch request to ISBNdb
 ISBNDB_API_KEY = os.getenv("ISBNDB_API_KEY")
-OUTPUT_PATH = "input_data/books.csv"
+OUTPUT_PATH = "data/input_data/books.csv"
 RETRY_LIMIT = 5
 RETRY_BACKOFF = 2
 DELAY_BETWEEN_REQUESTS = 1  # seconds between API calls
