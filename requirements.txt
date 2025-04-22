@@ -21,7 +21,7 @@ chroma-hnswlib==0.7.6
 chromadb==1.0.6
 click==8.1.8
 coloredlogs==15.0.1
-crewai==0.114.0
+crewai==0.11.2
 cryptography==44.0.2
 dataclasses-json==0.6.7
 decorator==5.2.1
