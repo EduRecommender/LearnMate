@@ -45,10 +45,6 @@ logs/
 # macOS
 .DS_Store
 
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
 # Kaggle
 .kaggle/
 
