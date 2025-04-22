@@ -1,1 +1,0 @@
-Error generating study plan: 'TaskOutput' object has no attribute 'context'
