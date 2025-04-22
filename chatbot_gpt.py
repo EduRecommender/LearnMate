@@ -16,7 +16,7 @@ if not gpt_api_key:
 gpt_client = OpenAI(api_key=gpt_api_key)
 
 # Load course dataset dynamically
-COURSES_FILE = os.getenv("COURSES_FILE", os.path.join(os.path.dirname(__file__), "input_data", "kaggle_filtered_courses.csv"))
+COURSES_FILE = os.getenv("COURSES_FILE", os.path.join(os.path.dirname(__file__), "data/input_data", "kaggle_filtered_courses.csv"))
 
 def load_courses():
     """Loads the course dataset dynamically."""

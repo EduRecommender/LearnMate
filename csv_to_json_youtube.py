@@ -3,7 +3,7 @@ import pandas as pd
 import json
 
 # Load dataset
-YOUTUBE_FILE = os.getenv("YOUTUBE_FILE", "input_data/youtube_videos.csv")
+YOUTUBE_FILE = os.getenv("YOUTUBE_FILE", "data/input_data/youtube_videos.csv")
 
 if not os.path.exists(YOUTUBE_FILE):
     raise FileNotFoundError(f"Video file not found at: {YOUTUBE_FILE}")

@@ -55,4 +55,7 @@ logs/
 # Local Development
 *.local.env
 
+# Data and Resources from S3 Bucket
+data/*
+
 testingsmth.py

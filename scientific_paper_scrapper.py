@@ -15,7 +15,7 @@ TOPICS = [
     "desirable difficulties", "cognitive load theory", "learning styles"
 ]
 TOP_N = 400             # results per topic
-OUTPUT_PATH = "input_data/papers_metadata.csv"
+OUTPUT_PATH = "data/input_data/papers_metadata.csv"
 RETRY_LIMIT = 5
 RETRY_BACKOFF = 2
 DELAY_BETWEEN_REQUESTS = 1  # seconds between HTTP calls

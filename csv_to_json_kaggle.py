@@ -3,7 +3,7 @@ import pandas as pd
 import json
 
 # Load dataset
-COURSES_FILE = os.getenv("COURSES_FILE", "input_data/kaggle_filtered_courses.csv")
+COURSES_FILE = os.getenv("COURSES_FILE", "data/input_data/kaggle_filtered_courses.csv")
 
 if not os.path.exists(COURSES_FILE):
     raise FileNotFoundError(f"Course file not found at: {COURSES_FILE}")

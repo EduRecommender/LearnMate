@@ -15,8 +15,8 @@ if not deepseek_api_key:
 deepseek_client = OpenAI(api_key=deepseek_api_key, base_url="https://api.deepseek.com")
 
 # File paths for datasets
-COURSES_FILE = os.getenv("COURSES_FILE", "input_data/kaggle_filtered_courses.csv")
-YOUTUBE_FILE = os.getenv("YOUTUBE_FILE", "input_data/youtube_videos.csv")
+COURSES_FILE = os.getenv("COURSES_FILE", "data/input_data/kaggle_filtered_courses.csv")
+YOUTUBE_FILE = os.getenv("YOUTUBE_FILE", "data/input_data/youtube_videos.csv")
 
 def load_courses():
     """Loads the course dataset and ensures required columns exist."""
