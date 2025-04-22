@@ -9,7 +9,7 @@ def setup_project_structure():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Define directory paths
-    data_dir = os.path.join(base_dir, "backend", "data")
+    data_dir = os.path.join(base_dir, "..", "backend", "data")
     processed_dir = os.path.join(data_dir, "processed")
     metadata_dir = os.path.join(processed_dir, "metadata")
     chat_requests_dir = os.path.join(data_dir, "chat_requests")

@@ -17,7 +17,7 @@ st.markdown("---")
 # Create project structure if it doesn't exist
 try:
     # Make sure directories exist
-    if not os.path.exists("backend/data/processed"):
+    if not os.path.exists("../backend/data/processed"):
         st.info("Setting up project structure...")
         subprocess.run([sys.executable, "setup.py"], check=True)
         st.success("Project structure created!")
@@ -46,5 +46,5 @@ except Exception as e:
         st.write(f"Current directory: {os.getcwd()}")
         st.write(f"Directory contents: {os.listdir('.')}")
         
-        if os.path.exists("backend/data"):
-            st.write(f"Data directory contents: {os.listdir('backend/data')}") 
+        if os.path.exists("../backend/data"):
+            st.write(f"Data directory contents: {os.listdir('../backend/data')}") 
