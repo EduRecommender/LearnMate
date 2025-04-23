@@ -134,10 +134,10 @@ class SimpleAgentOrchestrator:
             from pathlib import Path
             sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
             
-            import Agents.llm_config
+            import agents.llm_config
             if self.llm:
                 # Set the llm in the llm_config module
-                Agents.llm_config.llama_llm = self.llm
+                agents.llm_config.llama_llm = self.llm
             
             # Generate the study plan
             plan = create_study_plan(context)

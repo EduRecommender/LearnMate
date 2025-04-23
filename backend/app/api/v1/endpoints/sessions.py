@@ -141,8 +141,8 @@ class SimpleAgentOrchestrator:
     def run_study_plan_generation(self, context):
         """Run study plan generation with the provided context"""
         try:
-            # Import the create_study_plan function from Agents.main
-            from Agents.main import create_study_plan
+            # Import the create_study_plan function from agents.main
+            from agents.main import create_study_plan
             
             if self.llm is None:
                 logger.warning("No LLM set for SimpleAgentOrchestrator, using default")
@@ -158,10 +158,10 @@ class SimpleAgentOrchestrator:
             from pathlib import Path
             sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
             
-            import Agents.llm_config
+            import agents.llm_config
             if self.llm:
                 # Set the llm in the llm_config module
-                Agents.llm_config.llama_llm = self.llm
+                agents.llm_config.llama_llm = self.llm
             
             # Generate the study plan
             plan = create_study_plan(context)
@@ -170,7 +170,7 @@ class SimpleAgentOrchestrator:
             if isinstance(plan, str) and (plan.startswith("Error") or plan.startswith("Failed")):
                 # Use fallback if main generation failed
                 logger.warning(f"Using fallback plan generation due to error: {plan}")
-                from Agents.study_assistant.main import create_fallback_plan
+                from agents.study_assistant.main import create_fallback_plan
                 return create_fallback_plan(context, plan)
             else:
                 return plan
@@ -181,7 +181,7 @@ class SimpleAgentOrchestrator:
 
             # Try to use fallback if available
             try:
-                from Agents.study_assistant.main import create_fallback_plan
+                from agents.study_assistant.main import create_fallback_plan
                 return create_fallback_plan(context, str(e))
             except Exception as fallback_error:
                 logger.error(f"Failed to create fallback plan: {str(fallback_error)}")
@@ -1225,7 +1225,7 @@ def check_if_study_plan_request(message: str) -> bool:
     """Check if a message is requesting a study plan"""
     try:
         # Try to use the dedicated module
-        from Agents.study_assistant.user_input import is_study_plan_request
+        from agents.study_assistant.user_input import is_study_plan_request
         return is_study_plan_request(message)
     except ImportError:
         # Fallback to built-in implementation
@@ -1250,7 +1250,7 @@ def check_if_study_plan_revision(message: str, db: Session, session_id: int) -> 
     """
     try:
         # Try to use the dedicated module for checking revision requests
-        from Agents.study_assistant.user_input import is_study_plan_revision, extract_difficult_topics, extract_syllabus_references, extract_all_preferences
+        from agents.study_assistant.user_input import is_study_plan_revision, extract_difficult_topics, extract_syllabus_references, extract_all_preferences
         
         # Check if it's a revision request
         is_revision = is_study_plan_revision(message)
