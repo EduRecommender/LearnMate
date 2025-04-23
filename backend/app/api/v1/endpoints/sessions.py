@@ -228,10 +228,15 @@ try:
             logger.error("Could not import Ollama from either langchain_community or langchain")
             raise
     
+    # Get Ollama base URL from environment variables
+    import os
+    ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    logger.info(f"Using Ollama base URL: {ollama_base_url}")
+    
     # Create a regular Ollama LLM with only compatible parameters
     ollama_llm = Ollama(
         model="llama3:8b",  # Use the model that's actually available
-        base_url="http://localhost:11434",
+        base_url=ollama_base_url,
         temperature=0.7,
         timeout=3600  # 1 hour timeout for Ollama API calls
     )
@@ -241,7 +246,7 @@ try:
     try:
         import requests
         response = requests.post(
-            "http://localhost:11434/api/generate",
+            f"{ollama_base_url}/api/generate",
             json={"model": "llama3:8b", "prompt": "Say hello", "stream": False},
             timeout=10
         )

@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  ollama:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama_models:/root/.ollama
+    environment:
+      - OLLAMA_FORCE_CPU=true
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      # Check if the server is running AND the model is available
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:11434/api/version && ollama show llama3:8b --modelfile > /dev/null || exit 1"]
+      interval: 5m
+      timeout: 10s
+      retries: 5
+      start_period: 60s # Give enough time for the model to potentially download
+    tty: true
+    stdin_open: true
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    depends_on:
+      - ollama
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - ./agents:/app/agents
+    environment:
+      - OLLAMA_HOST=ollama
+      - OLLAMA_BASE_URL=http://0.0.0.0:11434
+      - HOST=0.0.0.0
+      - PORT=8002
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8002/health"]
+      interval: 5m
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+  
+ 
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - NEXT_PUBLIC_API_URL=http://0.0.0.0:8002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:3000"]
+      interval: 5m
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    command: npm run dev
+
+  pytest:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tests
+    depends_on:
+      - backend
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    environment:
+      - OLLAMA_BASE_URL=http://0.0.0.0:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: pytest -xvs
+
+volumes:
+  ollama_models:

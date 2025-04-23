@@ -134,7 +134,7 @@ async def check_environment():
             print("- Transformers package NOT found (needed for DeepSeek)")
             
         # Check if agents directory exists
-        agents_path = os.path.join(os.path.abspath('..'), 'agents')
+        agents_path = os.path.join(os.path.abspath('../../..'), 'agents')
         if os.path.exists(agents_path):
             print(f"- Agents directory found at: {agents_path}")
             agent_files = [f for f in os.listdir(agents_path) if f.endswith('.py')]

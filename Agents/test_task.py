@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def test_crewai_task():
     """Test crewAI Task and TaskOutput initialization."""
     try:
-        from langchain.llms import Ollama
+        from langchain_community.llms import Ollama
 
         llm = Ollama(
             model="llama3",
