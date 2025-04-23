@@ -35,15 +35,18 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
       - ./data:/app/data
-      - ./agents:/app/agents
+      - ./agents:/agents
     environment:
       - OLLAMA_HOST=ollama
       - OLLAMA_BASE_URL=http://0.0.0.0:11434
       - HOST=0.0.0.0
       - PORT=8002
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:8002/health"]
@@ -79,16 +82,24 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: tests
+    container_name: pytest
     depends_on:
-      - backend
+      ollama:
+        condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
       - ./data:/app/data
+      - ./agents:/agents
     environment:
-      - OLLAMA_BASE_URL=http://0.0.0.0:11434
+      - PYTHONPATH=/app
+      - OLLAMA_BASE_URL=http://ollama:11434
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-    command: pytest -xvs
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - SKIP_OLLAMA_CHECK=true
+      - TESTING=true
+    command: ["pytest", "tests"]
 
 volumes:
   ollama_models:

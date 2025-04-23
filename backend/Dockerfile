@@ -1,16 +1,10 @@
-FROM python:3.11
+FROM python:3.11-slim
+
 WORKDIR /app
 
-# install deps
-COPY backend/requirements.txt .
-RUN pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# copy code + extras
-COPY backend/ ./backend/
-COPY agents/ ./agents/
-COPY data/ ./data/  
+COPY . .
 
-# Set working directory to backend
-WORKDIR /app/backend
-
-CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8002"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]

@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
 .Python
 build/
@@ -17,18 +18,28 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.cache
+.hypothesis/
 
 # Virtual Environment
-venv
+venv/
 .env/
 .venv/
 env/
 ENV/
 .env
-venv/
-# MLflow
-mlruns/
-mlflow.db
+
+# Testing
+.coverage
+.coverage.*
+.pytest_cache/
+.tox/
+htmlcov/
+coverage_html/
+coverage.xml
+*.cover
+test.db
+test_uploads/
 
 # IDE
 .vscode/
@@ -53,5 +64,3 @@ logs/
 # Data and Resources from S3 Bucket
 data/*
 !data/.gitkeep
-
-testingsmth.py
