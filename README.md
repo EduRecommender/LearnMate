@@ -24,6 +24,7 @@ streamlit run home.py
 - Daniel Mora
 - Riley Martin
 - Noah Schiek
+- Andrés Taboada
 
 ---
 
