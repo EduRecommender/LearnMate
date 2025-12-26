@@ -23,7 +23,7 @@ streamlit run home.py
 - Farah Orfaly
 - Daniel Mora
 - Riley Martin
-- Noah Schiek
+- Nolan Schiek
 - Andrés Taboada
 
 ---
