@@ -1,0 +1,1 @@
+Retrieval practice strengthens memory by asking the learner to recall information without looking at notes. Good plans include short closed-book recall sessions, practice questions, blank-page summaries, and error review. Retrieval should happen after initial exposure and again after a delay.

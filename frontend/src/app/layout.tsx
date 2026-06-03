@@ -6,7 +6,7 @@ import Providers from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LearnMate - Your AI Study Partner",
+  title: "LearnMate - Study Planning",
   description: "Personalized learning experience powered by AI",
 };
 

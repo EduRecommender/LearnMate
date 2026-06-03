@@ -210,7 +210,7 @@ class SessionService:
         # Generate a unique filename to prevent collisions
         file_extension = os.path.splitext(file.filename)[1]
         unique_filename = f"{uuid.uuid4()}{file_extension}"
-        upload_dir = os.path.join("uploads", "resources")
+        upload_dir = os.path.join(settings.UPLOAD_DIR, "resources")
         
         # Ensure upload directory exists
         os.makedirs(upload_dir, exist_ok=True)
@@ -355,4 +355,4 @@ class SessionService:
         if session and hasattr(session, 'resources'):
             for resource in session.resources:
                 SessionService._ensure_resource_safe(resource)
-        return session 
+        return session

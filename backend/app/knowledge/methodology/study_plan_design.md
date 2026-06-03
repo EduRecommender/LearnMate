@@ -1,0 +1,1 @@
+Effective study plans balance concept learning, worked examples, active practice, breaks, and reflection. Each day should have a clear objective, time-boxed tasks, a check for understanding, and a small review of prior material. Plans should respect the requested number of days and hours per day.
