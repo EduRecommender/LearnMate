@@ -41,18 +41,55 @@ mlflow.db
 logs/
 *.log
 *.sqlite
+*.db
+*.sqlite3
+*.bak
+*.backup
+chat_output.json
+generated_*.md
+study_plan_*.txt
+study_plan_*.md
+!backend/app/knowledge/methodology/study_plan_design.md
+backend/data/chat_requests/
+backend/data/metrics/
+backend/data/requests/
+backend/data/study_plan_requests/
+backend/uploads/
+uploads/
+data/
+temp_*/
+Create/
+environment/
+new/
+virtual/
+frontend/.next/
+frontend/node_modules/
+frontend/src/lib.zip
+_local_backup_before_pull_*/
+backend/data/*.json
+backend/app/agents/
+backend/app/db/
+backend/app/api/deps.py
+backend/app/services/context_loader.py
+backend/init_db.py
+check_*.py
+check_*.sh
+fix_llm_integration.py
+computer_vision_study_plan.md
+project_report.md
+examples/
+test_*.py
+testing.py
+!tests/test_job_store.py
+!tests/test_study_plan_engine.py
 
 # macOS
 .DS_Store
 
-# Kaggle
+# Local credentials
 .kaggle/
 
 # Local Development
 *.local.env
-
-# Data and Resources from S3 Bucket
-data/*
-!data/.gitkeep
 
 testingsmth.py

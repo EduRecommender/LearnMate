@@ -1,0 +1,1 @@
+Schedule design should protect focus and recovery. Use 45-60 minute focus blocks with short breaks, reserve harder topics for higher-energy periods, and alternate related topics to improve transfer. Avoid overloading a single day; distribute difficult material across multiple sessions.

@@ -1,26 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Body, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Any, List, Optional, Dict
 from datetime import datetime
 import os
 import uuid
-import sys
 import logging
 import json
 import traceback
 import tempfile
-from io import BytesIO
-import base64
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
 import re
 import time
-from pydantic import ValidationError
 import psutil
 import requests
 
-from ....database import get_db
+from ....database import get_db, SessionLocal
 from ....services.session import SessionService
 from ....schemas.user import (
     User,
@@ -34,175 +29,15 @@ from ....schemas.user import (
 )
 from ....models.user import User as UserModel, Resource, StudySession, ChatMessage
 from ....services.user import UserService
+from ....services.job_store import job_store
+from ....services.study_plan_engine import StudyPlanEngineError, create_engine
+from ....core.config import settings
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Track API startup time
 start_time = time.time()
-
-# FORCE multiagent to be available - manual override
-has_multiagent = True
-logger.info("FORCED multiagent system to be ENABLED at top level")
-
-# Import OpenAI if available
-try:
-    from openai import OpenAI
-    openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    has_openai = True
-    logger.info("OpenAI integration enabled")
-except (ImportError, Exception) as e:
-    has_openai = False
-    openai_client = None
-    logger.warning(f"OpenAI integration not available: {str(e)}")
-
-# Set up direct assistant agent using Ollama
-class OllamaAssistantAgent:
-    """Assistant agent that uses Ollama directly"""
-    
-    def __init__(self, model_name="llama3:8b"):
-        self.model_name = model_name
-        logger.info(f"OllamaAssistantAgent initialized with model: {model_name}")
-    
-    async def generate_response(self, messages, max_tokens=1000):
-        """Generate a response using Ollama LLM"""
-        try:
-            # Format messages into a prompt
-            prompt = ""
-            for m in messages:
-                role = m.get('role', 'user')
-                content = m.get('content', '')
-                prompt += f"{role}: {content}\n"
-            
-            # Add assistant prefix for the response
-            prompt += "assistant: "
-            
-            # Log the full prompt
-            logger.debug("="*50)
-            logger.debug("GENERATING LLM RESPONSE - PROMPT:")
-            logger.debug("-"*50)
-            logger.debug(prompt)
-            logger.debug("-"*50)
-            
-            # Use global llama_llm if available
-            if 'llama_llm' in globals() and globals()['llama_llm'] is not None:
-                # Track the start time
-                start_time = time.time()
-                
-                # Get the response
-                response = globals()['llama_llm'].invoke(prompt)
-                
-                # Calculate and log completion time
-                completion_time = time.time() - start_time
-                
-                # Log the full response
-                logger.debug("LLM RESPONSE (took %.2f seconds):" % completion_time)
-                logger.debug("-"*50)
-                logger.debug(response)
-                logger.debug("="*50)
-                
-                return response
-            else:
-                logger.error("Ollama LLM not available")
-                return "I'm sorry, Ollama LLM is not available."
-        except Exception as e:
-            logger.error(f"Error in OllamaAssistantAgent.generate_response: {str(e)}")
-            return f"Error generating response: {str(e)}"
-
-# Simple message class for chat context
-class AgentChatMessage:
-    """Chat message class for assistant interactions"""
-    
-    def __init__(self, content="", role="user"):
-        self.content = content
-        self.role = role
-    
-    def to_dict(self):
-        return {"content": self.content, "role": self.role}
-
-# Set up the assistant agent using Ollama
-assistant_agent = OllamaAssistantAgent()
-has_assistant = True
-
-# Create a simple orchestrator class for study plan generation 
-class SimpleAgentOrchestrator:
-    """A simplified orchestrator to manage agent workflows"""
-    
-    def __init__(self):
-        logger.info("SimpleAgentOrchestrator initialized")
-        self.llm = None
-    
-    def set_llm(self, llm_instance):
-        """Set the LLM instance to use for agent tasks"""
-        self.llm = llm_instance
-        return self
-    
-    def run_study_plan_generation(self, context):
-        """Run study plan generation with the provided context"""
-        try:
-            # Import the create_study_plan function from Agents.main
-            from Agents.main import create_study_plan
-            
-            if self.llm is None:
-                logger.warning("No LLM set for SimpleAgentOrchestrator, using default")
-                # Try to use the global llama_llm if available
-                if 'llama_llm' in globals():
-                    self.llm = llama_llm
-            
-            # Generate the study plan using our new implementation
-            logger.info(f"Generating study plan with context: {context.get('subject', 'unknown subject')}")
-            
-            # Ensure the LLM is set in llm_config.py
-            import sys
-            from pathlib import Path
-            sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
-            
-            import Agents.llm_config
-            if self.llm:
-                # Set the llm in the llm_config module
-                Agents.llm_config.llama_llm = self.llm
-            
-            # Generate the study plan
-            plan = create_study_plan(context)
-            
-            # Check if plan is an error message (string starts with "Error" or "Failed")
-            if isinstance(plan, str) and (plan.startswith("Error") or plan.startswith("Failed")):
-                # Use fallback if main generation failed
-                logger.warning(f"Using fallback plan generation due to error: {plan}")
-                from Agents.study_assistant.main import create_fallback_plan
-                return create_fallback_plan(context, plan)
-            else:
-                return plan
-            
-        except Exception as e:
-            logger.error(f"Error in SimpleAgentOrchestrator.run_study_plan_generation: {str(e)}")
-            logger.exception("Error details:")
-
-            # Try to use fallback if available
-            try:
-                from Agents.study_assistant.main import create_fallback_plan
-                return create_fallback_plan(context, str(e))
-            except Exception as fallback_error:
-                logger.error(f"Failed to create fallback plan: {str(fallback_error)}")
-                return f"Failed to generate study plan: {str(e)}"
-
-# Initialize the orchestrator
-orchestrator = SimpleAgentOrchestrator()
-has_orchestrator = True
-
-# Add these new imports
-import traceback
-import importlib.util
-from pathlib import Path
-
-# Add the parent directory to the Python path to import from agents directory
-base_path = Path(__file__).parent.parent.parent.parent.parent.parent
-agents_path = base_path / "agents"
-sys.path.append(str(base_path))
-
-# Specify the multiagent directory name - using agents/agents instead of Testing_multiagent_copy
-multiagent_dir = "agents"
 
 # Global variables for tracking Ollama status
 ollama_available = False
@@ -210,7 +45,7 @@ ollama_last_error = None
 
 # Initialize Ollama if available
 try:
-    logger.info("Attempting to initialize Ollama LLM")
+    logger.info("Attempting to initialize Ollama model")
     
     # Try importing langchain first
     try:
@@ -228,10 +63,10 @@ try:
             logger.error("Could not import Ollama from either langchain_community or langchain")
             raise
     
-    # Create a regular Ollama LLM with only compatible parameters
+    # Create a regular Ollama model client with compatible parameters
     ollama_llm = Ollama(
-        model="llama3:8b",  # Use the model that's actually available
-        base_url="http://localhost:11434",
+        model=settings.OLLAMA_MODEL,
+        base_url=settings.OLLAMA_BASE_URL,
         temperature=0.7,
         timeout=3600  # 1 hour timeout for Ollama API calls
     )
@@ -241,8 +76,8 @@ try:
     try:
         import requests
         response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "llama3:8b", "prompt": "Say hello", "stream": False},
+            f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate",
+            json={"model": settings.OLLAMA_MODEL, "prompt": "Say hello", "stream": False},
             timeout=10
         )
         if response.status_code == 200:
@@ -290,13 +125,9 @@ try:
         llama_llm = ollama_llm  # Assign to the global variable
         logger.info("✅ Successfully connected to Ollama")
         
-        # Set the LLM in the orchestrator
-        if orchestrator:
-            orchestrator.set_llm(llama_llm)
-            logger.info("Set Ollama LLM in the orchestrator")
     except Exception as e:
         logger.error(f"❌ Error testing Ollama connection through LangChain: {str(e)}")
-        logger.error(f"Make sure Ollama is running with: ollama run llama3:8b")
+        logger.error(f"Make sure Ollama is running with model: {settings.OLLAMA_MODEL}")
         logger.error(traceback.format_exc())
         ollama_available = False
         llama_llm = None
@@ -304,143 +135,11 @@ try:
         # Reraise to abort initialization
         raise
     
-    # Now try to set up the CrewAI integration
-    try:
-        logger.info("Initializing CrewAI")
-        from crewai import Agent, Task, Crew, Process, TaskOutput
-        from langchain.agents import Tool
-        from langchain_community.chat_models import ChatOpenAI
-        from langchain_core.language_models.chat_models import BaseChatModel
-        
-        # Create a fake ChatOpenAI class that uses our Ollama LLM
-        class OllamaFakeOpenAI(ChatOpenAI):
-            def __init__(self, *args, **kwargs):
-                # Call the parent constructor with fake values
-                super().__init__(
-                    model="gpt-3.5-turbo",  # Doesn't matter, we'll override
-                    api_key="sk-fake-key",
-                    base_url="https://example.com",
-                    temperature=0.7,
-                    request_timeout=3600,  # 1 hour timeout for OpenAI API calls
-                    *args, **kwargs
-                )
-                
-                # Store the Ollama LLM in a way that doesn't trigger Pydantic validation
-                # Using object.__setattr__ to bypass Pydantic's field validation
-                object.__setattr__(self, "_ollama_llm", llama_llm)
-                
-            def invoke(self, prompt, *args, **kwargs):
-                # Just delegate to our working Ollama instance
-                try:
-                    # Access using the private attribute instead
-                    ollama_instance = object.__getattribute__(self, "_ollama_llm")
-                    
-                    if isinstance(prompt, str):
-                        # Direct string prompt
-                        return ollama_instance.invoke(prompt)
-                    else:
-                        # Handle message-style inputs by converting to a string
-                        messages_text = ""
-                        for message in prompt.messages:
-                            role = message.type if hasattr(message, 'type') else "unknown"
-                            content = message.content if hasattr(message, 'content') else str(message)
-                            messages_text += f"{role}: {content}\n"
-                        return ollama_instance.invoke(messages_text)
-                except Exception as e:
-                    logger.error(f"Error invoking Ollama: {str(e)}")
-                    return f"Error: {str(e)}"
-            
-            def __call__(self, prompt, *args, **kwargs):
-                # Also override direct calls
-                return self.invoke(prompt, *args, **kwargs)
-        
-        # Create a fake OpenAI interface that uses our Ollama instance
-        fake_openai = OllamaFakeOpenAI()
-        
-        # Initialize agents
-        logger.info("Initializing strategy agent")
-        strategy_agent = Agent(
-            role="Learning Strategy Expert",
-            goal="Recommend the most effective learning strategies for the student",
-            backstory="""You are an expert in educational psychology and learning strategies.
-            You understand the science of effective learning and can recommend
-            personalized study strategies based on learning styles and preferences.""",
-            llm=fake_openai,
-            verbose=True
-        )
-        strategist_agent = strategy_agent  # Create an alias for consistency
-        
-        logger.info("Initializing resources agent")
-        resources_agent = Agent(
-            role="Educational Resource Finder",
-            goal="Find the best learning resources for the recommended strategies",
-            backstory="""You are an expert in finding high-quality educational resources.
-            You know where to find the best books, websites, videos, and tools for any subject.""",
-            llm=fake_openai,
-            verbose=True
-        )
-        
-        logger.info("Initializing planner agent")
-        planner_agent = Agent(
-            role="Study Plan Creator",
-            goal="Create a detailed, actionable study plan integrating the strategies and resources",
-            backstory="""You are an expert in creating effective study plans and schedules.
-            You know how to break down complex subjects into manageable chunks and create 
-            realistic timelines that keep students motivated and on track.""",
-            llm=fake_openai,
-            verbose=True
-        )
-        
-        logger.info("Initializing data fetcher agent")
-        data_fetcher_agent = Agent(
-            role="Data and Research Analyst",
-            goal="Research specific topics and find detailed information",
-            backstory="""You are an expert researcher who can find detailed information on any topic.
-            You know how to validate sources and compile comprehensive information.""",
-            llm=fake_openai,
-            verbose=True
-        )
-        
-        # Initialize tasks
-        logger.info("Initializing strategy task")
-        strategy_task = Task(
-            description="Analyze learning preferences and recommend 3-5 evidence-based learning strategies",
-            expected_output="A detailed analysis of 3-5 learning strategies with explanations of why they are appropriate",
-            agent=strategy_agent
-        )
-        strategist_task = strategy_task  # Create an alias for consistency
-        
-        logger.info("Initializing resources task")
-        resources_task = Task(
-            description="Find high-quality learning resources that match the recommended strategies",
-            expected_output="A list of 5-10 specific resources with explanations of how they align with the strategies",
-            agent=resources_agent
-        )
-        
-        logger.info("Initializing planner task")
-        planner_task = Task(
-            description="Create a detailed daily/weekly study plan integrating the strategies and resources",
-            expected_output="A comprehensive study plan with specific activities, resources, and time allocations",
-            agent=planner_agent
-        )
-        
-        logger.info("Successfully initialized all agents and tasks")
-        
-        # If we made it here, set has_multiagent to True
-        has_multiagent = True
-        logger.info("Multi-agent system successfully initialized")
-        
-    except Exception as e:
-        logger.error(f"Error initializing CrewAI: {str(e)}")
-        logger.error(traceback.format_exc())
-        has_multiagent = False  # Make sure this is set to False on error
-    
 except Exception as e:
     logger.error(f"Error initializing Ollama: {str(e)}")
     logger.error(traceback.format_exc())
     ollama_available = False
     llama_llm = None
-    has_multiagent = False
     ollama_last_error = str(e)
 
 router = APIRouter()
@@ -707,20 +406,13 @@ async def upload_syllabus(
     """
     import tempfile
     
-    # Try to import the syllabus processor
     try:
-        # Add the root directory to the path to access the syllabus_processor
-        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
-        if root_dir not in sys.path:
-            sys.path.append(root_dir)
-        
-        from syllabus_processor import process_uploaded_syllabus
+        from app.services.syllabus_processor import process_uploaded_syllabus
         has_processor = True
         logger.info("Syllabus processor imported successfully")
-    except (ImportError, Exception) as e:
+    except ImportError as e:
         has_processor = False
         logger.warning(f"Syllabus processor not available: {str(e)}")
-        logger.exception("Error details:")
     
     session = SessionService.get_session(db, session_id)
     if not session:
@@ -919,47 +611,6 @@ async def get_chat_history(
     chat_history = SessionService.get_chat_history(db, session_id) or []
     return chat_history
 
-# Dictionary to store ongoing requests
-processing_requests = {}
-
-# Provide a way to persist requests between server restarts
-# This is a simple file-based persistence that will work for development
-def save_request_data(request_id, data):
-    import json
-    import os
-    
-    # Create directory if it doesn't exist
-    os.makedirs("./data/chat_requests", exist_ok=True)
-    
-    # Save request data to a file
-    try:
-        with open(f"./data/chat_requests/{request_id}.json", "w") as f:
-            json.dump(data, f)
-        logger.info(f"Saved request data for {request_id}")
-    except Exception as e:
-        logger.error(f"Failed to save request data: {str(e)}")
-
-def load_request_data(request_id):
-    import json
-    import os
-    
-    # Load request data from file
-    try:
-        file_path = f"./data/chat_requests/{request_id}.json"
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
-                data = json.load(f)
-            logger.info(f"Loaded request data for {request_id}")
-            # Also update the in-memory cache
-            processing_requests[request_id] = data
-            return data
-        else:
-            logger.warning(f"No saved data found for request {request_id}")
-            return None
-    except Exception as e:
-        logger.error(f"Failed to load request data: {str(e)}")
-        return None
-
 @router.get("/{session_id}/chat/status/{request_id}", response_model=Dict[str, Any])
 async def check_chat_message_status(
     session_id: int,
@@ -969,73 +620,24 @@ async def check_chat_message_status(
 ):
     """Check the status of an asynchronous chat message request"""
     try:
-        logger.info(f"Checking status for request {request_id} in session {session_id}")
-        
-        # Special handling for fallback IDs created by the frontend
-        if request_id.startswith("fallback-"):
-            logger.info(f"Handling fallback request ID: {request_id}")
-            # These are special IDs generated by the frontend when it can't reach the start endpoint
-            # We'll treat them as completed and let the frontend handle the message display
-            return {
-                "status": "complete",
-                "started_at": datetime.now().isoformat(),
-                "completed_at": datetime.now().isoformat(),
-                "result": {
-                    "message_id": str(uuid.uuid4()),
-                    "role": "assistant",
-                    "content": "I'm sorry, but there was an issue with the message processing. The system is working in fallback mode.",
-                    "timestamp": datetime.now().isoformat()
-                }
-            }
-        
-        # Check if the request exists in memory
-        if request_id not in processing_requests:
-            logger.info(f"Request {request_id} not found in memory, trying to load from disk")
-            
-            # Try to load from disk
-            request_data = load_request_data(request_id)
-            if not request_data:
-                logger.error(f"Request {request_id} not found in memory or disk")
-                raise HTTPException(status_code=404, detail="Request not found")
-        else:
-            # Get the request data from memory
-            request_data = processing_requests[request_id]
-            logger.info(f"Found request {request_id} in memory, status: {request_data['status']}")
-        
-        # Check authorization
+        request_data = job_store.get(request_id)
+        if not request_data:
+            raise HTTPException(status_code=404, detail="Request not found")
         if request_data["user_id"] != current_user.id:
-            logger.warning(f"User {current_user.id} not authorized to access request {request_id}")
             raise HTTPException(status_code=403, detail="Not authorized to access this request")
-        
-        # Check if the request is for the specified session
         if int(request_data["session_id"]) != int(session_id):
-            logger.warning(f"Request {request_id} doesn't match session ID {session_id}")
             raise HTTPException(status_code=400, detail="Request doesn't match session ID")
-        
-        # Return status and result if available
+
         response = {
             "status": request_data["status"],
-            "started_at": request_data["started_at"]
+            "stage": request_data.get("stage"),
+            "started_at": request_data["started_at"],
+            "updated_at": request_data.get("updated_at"),
         }
-        
-        if request_data["status"] == "complete" and request_data["result"]:
+        if request_data.get("result"):
             response["result"] = request_data["result"]
-            
-            # Don't immediately clean up - keep for a while
-            if "completed_at" in request_data:
-                completed_time = datetime.fromisoformat(request_data["completed_at"])
-                now = datetime.now()
-                if (now - completed_time).total_seconds() > 86400:  # 24 hours
-                    # Remove the request data after 24 hours
-                    logger.info(f"Cleaning up completed request {request_id}")
-                    processing_requests.pop(request_id, None)
-                    # Also remove file
-                    import os
-                    try:
-                        os.remove(f"./data/chat_requests/{request_id}.json")
-                    except Exception as e:
-                        logger.error(f"Failed to remove request file: {str(e)}")
-        
+        if request_data.get("error"):
+            response["error"] = request_data["error"]
         return response
     except HTTPException:
         # Re-raise HTTP exceptions
@@ -1044,6 +646,36 @@ async def check_chat_message_status(
         logger.error(f"Error checking chat message status: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{session_id}/chat/{request_id}/events")
+async def stream_chat_message_events(
+    session_id: int,
+    request_id: str,
+    current_user: User = Depends(get_current_user_simplified),
+):
+    """Stream stage/status updates for a long-running chat request."""
+    request_data = job_store.get(request_id)
+    if not request_data:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if request_data["user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this request")
+    if int(request_data["session_id"]) != int(session_id):
+        raise HTTPException(status_code=400, detail="Request doesn't match session ID")
+
+    async def event_generator():
+        index = 0
+        while True:
+            events = job_store.events_since(request_id, index)
+            for event in events:
+                index += 1
+                yield f"data: {json.dumps(event)}\n\n"
+
+            latest = job_store.get(request_id)
+            if latest and latest.get("status") in {"succeeded", "failed"} and index >= len(latest.get("events", [])):
+                break
+            await asyncio.sleep(1)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @router.post("/{session_id}/chat/start", response_model=Dict[str, Any])
 async def start_chat_message_processing(
@@ -1064,46 +696,18 @@ async def start_chat_message_processing(
             
         message = request.get("message", "")
         logger.info(f"Starting asynchronous processing for message in session {session_id}")
-        
-        # Check if this is a fallback request ID
-        fallback_id = request.get("fallback_id", None)
-        if fallback_id and fallback_id.startswith("fallback-"):
-            logger.info(f"Using provided fallback ID: {fallback_id}")
-            request_id = fallback_id
-        else:
-            # Generate a unique ID for this request
-            request_id = str(uuid.uuid4())
-        
-        # Store the request info
-        request_data = {
-            "session_id": session_id,
-            "message": message,
-            "user_id": current_user.id,
-            "status": "processing",
-            "started_at": datetime.now().isoformat(),
-            "result": None
-        }
-        
-        # Store in memory
-        processing_requests[request_id] = request_data
-        
-        # Persist to disk
-        save_request_data(request_id, request_data)
-        
+        request_id = str(uuid.uuid4())
+        job_store.create(request_id, session_id=session_id, message=message, user_id=current_user.id)
         logger.info(f"Created request {request_id} for session {session_id}")
-        
-        # Start processing in background
         asyncio.create_task(
             process_chat_message_background(
                 request_id=request_id,
                 session_id=session_id,
                 message=message,
                 current_user=current_user,
-                db=db
             )
         )
-        
-        return {"request_id": request_id, "status": "processing"}
+        return {"request_id": request_id, "status": "queued", "stage": "context"}
     except Exception as e:
         logger.error(f"Error starting chat message processing: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1123,34 +727,14 @@ async def send_chat_message(
         message = request.get("message", "")
         logger.info(f"Chat message received for session {session_id}")
         
-        # Generate a fallback ID that can be used by the frontend
-        fallback_id = f"fallback-{int(time.time() * 1000)}"
-        
-        # Start processing in the background and get the request ID
         start_response = await start_chat_message_processing(
             session_id=session_id,
-            request={"message": message, "fallback_id": fallback_id},
+            request={"message": message},
             current_user=current_user,
             db=db
         )
-        
         request_id = start_response["request_id"]
-        
-        # Process the message immediately, but still return quickly
-        asyncio.create_task(
-            process_chat_message_background(
-                request_id=request_id,
-                session_id=session_id,
-                message=message,
-                current_user=current_user,
-                db=db
-            )
-        )
-        
-        # For backwards compatibility, wait briefly and check if the result is ready
-        # This helps with simple requests that can be processed quickly
         await asyncio.sleep(0.5)  # Wait 500ms to see if it completes quickly
-        
         try:
             status_response = await check_chat_message_status(
                 session_id=session_id,
@@ -1159,20 +743,19 @@ async def send_chat_message(
                 db=db
             )
             
-            if status_response["status"] == "complete" and "result" in status_response:
-                # The message was processed quickly, return the result directly
+            if status_response["status"] == "succeeded" and "result" in status_response:
                 return status_response["result"]
         except Exception as check_error:
             logger.error(f"Error checking immediate status: {str(check_error)}")
-        
-        # The message is still processing, return an in-progress response
         return {
             "message_id": f"pending-{request_id}",
             "role": "assistant",
             "content": "Processing your request...",
             "timestamp": datetime.now().isoformat(),
             "is_processing": True,
-            "request_id": request_id
+            "request_id": request_id,
+            "status": "queued",
+            "stage": "context",
         }
         
     except ValueError as e:
@@ -1218,177 +801,115 @@ async def clear_chat_history(
 # Add these helper functions before the send_chat_message_internal function
 def check_if_study_plan_request(message: str) -> bool:
     """Check if a message is requesting a study plan"""
-    try:
-        # Try to use the dedicated module
-        from Agents.study_assistant.user_input import is_study_plan_request
-        return is_study_plan_request(message)
-    except ImportError:
-        # Fallback to built-in implementation
-        message_lower = message.lower()
-        study_plan_keywords = [
-            "study plan", "learning plan", "plan for", "create a plan", 
-            "help me study", "help me prepare", "study schedule",
-            "study guide", "study strategy", "learning strategy",
-            "make me a plan", "create a study", "plan based on", 
-            "personalized study", "detailed daily", "daily activities",
-            "how should i study", "how to study", "structured plan", 
-            "schedule for studying", "prepare for exam", "exam preparation",
-            "plan my study", "organize my learning", "syllabus plan",
-            "prepare for my course", "learning roadmap", "study roadmap"
-        ]
-        
-        return any(keyword in message_lower for keyword in study_plan_keywords)
+    message_lower = message.lower()
+    study_plan_keywords = [
+        "study plan", "learning plan", "plan for", "create a plan",
+        "help me study", "help me prepare", "study schedule",
+        "study guide", "study strategy", "learning strategy",
+        "make me a plan", "create a study", "plan based on",
+        "personalized study", "detailed daily", "daily activities",
+        "how should i study", "how to study", "structured plan",
+        "schedule for studying", "prepare for exam", "exam preparation",
+        "plan my study", "organize my learning", "syllabus plan",
+        "prepare for my course", "learning roadmap", "study roadmap"
+    ]
+
+    return any(keyword in message_lower for keyword in study_plan_keywords)
 
 def check_if_study_plan_revision(message: str, db: Session, session_id: int) -> tuple:
     """Check if the user is requesting a revision to an existing study plan
     Returns a tuple of (is_revision, difficult_topics, focus_sessions, specific_resources)
     """
-    try:
-        # Try to use the dedicated module for checking revision requests
-        from Agents.study_assistant.user_input import is_study_plan_revision, extract_difficult_topics, extract_syllabus_references, extract_all_preferences
-        
-        # Check if it's a revision request
-        is_revision = is_study_plan_revision(message)
-        
-        # If it's not a revision, return quickly
-        if not is_revision:
-            return (False, [], None, [])
-        
-        # Extract preferences
-        preferences = extract_all_preferences(message)
-        
-        # Get difficult topics
-        difficult_topics = preferences.get('difficult_topics', [])
-        
-        # Get focus sessions
-        focus_sessions = preferences.get('focus_sessions')
-        
-        # Extract specific resources from database
-        specific_resources = []
-        resources = db.query(Resource).filter(Resource.session_id == session_id).all()
-        
-        for resource in resources:
-            if resource.name.lower() in message.lower():
-                specific_resources.append({
-                    "id": resource.id,
-                    "name": resource.name,
-                    "type": resource.type if hasattr(resource, 'type') else "UNKNOWN"
-                })
-        
-        # Add preferred resource types if available
-        if "preferred_resource_types" in preferences:
-            for res_type in preferences["preferred_resource_types"]:
+    message_lower = message.lower()
+    revision_keywords = [
+        "revise the plan", "update the plan", "modify the plan", "change the plan",
+        "adjust the study plan", "can you modify", "need more time for",
+        "don't understand", "struggling with", "having trouble with",
+        "need help with", "focus more on", "spend more time on",
+        "allocate more time", "prefer different resources", "different approach",
+        "too difficult", "too easy", "too much time", "not enough time",
+        "better resources", "prefer to use", "would rather use",
+    ]
+
+    is_revision = any(keyword in message_lower for keyword in revision_keywords)
+    if not is_revision:
+        return (False, [], None, [])
+
+    difficult_topics = []
+    struggle_phrases = [
+        "struggle with", "difficult for me", "having trouble with",
+        "not understanding", "confused about", "need help with",
+        "problem with", "challenging", "hard to grasp",
+        "focus more on", "more time for", "don't understand",
+    ]
+
+    for phrase in struggle_phrases:
+        if phrase in message_lower:
+            topic_start = message_lower.find(phrase) + len(phrase)
+            topic_end = message_lower.find(".", topic_start)
+            if topic_end == -1:
+                for delimiter in [",", "and", "but", "\n", " so "]:
+                    pos = message_lower.find(delimiter, topic_start)
+                    if pos != -1:
+                        topic_end = min(topic_end, pos) if topic_end != -1 else pos
+
+                if topic_end == -1:
+                    topic_end = len(message_lower)
+
+            topic = message_lower[topic_start:topic_end].strip()
+            if topic and len(topic) < 100:
+                difficult_topics.append(topic)
+
+    focus_sessions = None
+    session_patterns = [
+        r"session\s*(\d+)", r"day\s*(\d+)", r"week\s*(\d+)",
+        r"lecture\s*(\d+)", r"module\s*(\d+)",
+    ]
+
+    for pattern in session_patterns:
+        matches = re.findall(pattern, message_lower)
+        if matches:
+            focus_sessions = [int(match) for match in matches]
+            break
+
+    specific_resources = []
+    resources = db.query(Resource).filter(Resource.session_id == session_id).all()
+
+    for resource in resources:
+        if resource.name.lower() in message_lower:
+            specific_resources.append({
+                "id": resource.id,
+                "name": resource.name,
+                "type": resource.type if hasattr(resource, 'type') else "UNKNOWN",
+            })
+
+    resource_types = ["book", "video", "article", "paper", "tutorial", "course", "website"]
+    for res_type in resource_types:
+        if res_type in message_lower:
+            pos = message_lower.find(res_type)
+            start = max(0, pos - 30)
+            end = min(len(message_lower), pos + 30)
+            context = message_lower[start:end]
+
+            already_captured = any(res.get("name", "").lower() in context for res in specific_resources)
+            if not already_captured:
                 specific_resources.append({
                     "id": None,
-                    "name": f"Any {res_type}",
-                    "type": res_type
+                    "name": context.strip(),
+                    "type": res_type,
                 })
-        
-        return (is_revision, difficult_topics, focus_sessions, specific_resources)
-        
-    except ImportError:
-        # Fallback to built-in implementation
-        message_lower = message.lower()
-        
-        # Keywords for revisions
-        revision_keywords = [
-            "revise the plan", "update the plan", "modify the plan", "change the plan",
-            "adjust the study plan", "can you modify", "need more time for",
-            "don't understand", "struggling with", "having trouble with", 
-            "need help with", "focus more on", "spend more time on",
-            "allocate more time", "prefer different resources", "different approach",
-            "too difficult", "too easy", "too much time", "not enough time",
-            "better resources", "prefer to use", "would rather use"
-        ]
-        
-        is_revision = any(keyword in message_lower for keyword in revision_keywords)
-        
-        # If it's not a revision, return quickly
-        if not is_revision:
-            return (False, [], None, [])
-        
-        # Extract difficult topics or areas that need more focus
-        difficult_topics = []
-        struggle_phrases = ["struggle with", "difficult for me", "having trouble with", 
-                           "not understanding", "confused about", "need help with",
-                           "problem with", "challenging", "hard to grasp", 
-                           "focus more on", "more time for", "don't understand"]
-        
-        for phrase in struggle_phrases:
-            if phrase in message_lower:
-                # Find the topic after the struggle phrase
-                topic_start = message_lower.find(phrase) + len(phrase)
-                topic_end = message_lower.find(".", topic_start)
-                if topic_end == -1:  # If no period, look for other delimiters
-                    for delimiter in [",", "and", "but", "\n", " so "]:
-                        pos = message_lower.find(delimiter, topic_start)
-                        if pos != -1:
-                            topic_end = min(topic_end, pos) if topic_end != -1 else pos
-                            
-                    if topic_end == -1:  # Still not found, use the rest of the message
-                        topic_end = len(message_lower)
-                        
-                topic = message_lower[topic_start:topic_end].strip()
-                if topic and len(topic) < 100:  # Reasonable topic length
-                    difficult_topics.append(topic)
-        
-        # Extract specific sessions or days to focus on
-        focus_sessions = None
-        session_patterns = [
-            r"session\s*(\d+)", r"day\s*(\d+)", r"week\s*(\d+)", 
-            r"lecture\s*(\d+)", r"module\s*(\d+)"
-        ]
-        
-        for pattern in session_patterns:
-            matches = re.findall(pattern, message_lower)
-            if matches:
-                focus_sessions = [int(match) for match in matches]
-                break
-        
-        # Extract specific resources mentioned
-        specific_resources = []
-        
-        # First get all resources for this session to match against
-        resources = db.query(Resource).filter(Resource.session_id == session_id).all()
-        
-        for resource in resources:
-            if resource.name.lower() in message_lower:
-                specific_resources.append({
-                    "id": resource.id,
-                    "name": resource.name,
-                    "type": resource.type if hasattr(resource, 'type') else "UNKNOWN"
-                })
-        
-        # Also check for generic resource types
-        resource_types = ["book", "video", "article", "paper", "tutorial", "course", "website"]
-        for res_type in resource_types:
-            if res_type in message_lower:
-                # Find the full resource mention
-                pos = message_lower.find(res_type)
-                start = max(0, pos - 30)  # Look 30 chars before
-                end = min(len(message_lower), pos + 30)  # and 30 chars after
-                context = message_lower[start:end]
-                
-                # If not already captured and seems to be a specific mention
-                already_captured = any(res.get("name", "").lower() in context for res in specific_resources)
-                if not already_captured:
-                    specific_resources.append({
-                        "id": None,
-                        "name": context.strip(),
-                        "type": res_type
-                    })
-        
-        return (is_revision, difficult_topics, focus_sessions, specific_resources)
+
+    return (is_revision, difficult_topics, focus_sessions, specific_resources)
 
 def get_ollama_response(session: StudySession, message: str, db: Session) -> str:
     """Get a response from the Ollama API for regular chat messages"""
     try:
-        # Add global declaration to access the Ollama LLM
+        # Add global declaration to access the Ollama model
         global llama_llm
         
         if not llama_llm:
-            logger.error("Ollama LLM is not initialized")
-            return "I'm sorry, but the language model is not available right now. Please try again later."
+            logger.error("Ollama model is not initialized")
+            return "I'm sorry, but the planning service is not available right now. Please try again later."
         
         # Get chat history for context (last 7 messages)
         chat_messages = db.query(ChatMessage).filter(
@@ -1769,465 +1290,14 @@ def get_user_task_context(db: Session, current_user: User, session: StudySession
             "error": f"Error extracting context: {str(e)}"
         }
 
-def validate_task_params(agent, context=None):
-    """Validate task parameters to prevent type errors
-    
-    Args:
-        agent: Should be an Agent object, not a string
-        context: If provided, should be a list of TaskOutput objects
-        
-    Raises:
-        TypeError: If parameters have incorrect types
-    """
-    if not isinstance(agent, Agent):
-        raise TypeError(f"Task agent must be an Agent object, not {type(agent).__name__}")
-    
-    if context is not None:
-        if not isinstance(context, list):
-            raise TypeError(f"Task context must be a list, not {type(context).__name__}")
-        
-        for item in context:
-            if not isinstance(item, TaskOutput):
-                raise TypeError(f"Task context items must be TaskOutput objects, not {type(item).__name__}")
-
-async def run_multiagent_tasks(user_query: str, task_context: dict) -> str:
+async def run_multiagent_tasks(user_query: str, task_context: dict, progress_callback=None) -> Dict[str, Any]:
     """Run multiagent tasks to generate a complete study plan"""
-    try:
-        logger.info(f"Starting multiagent study plan generation")
-        logger.info(f"User query: {user_query}")
-        logger.info(f"Context keys available: {list(task_context.keys())}")
-        
-        # Extract key context fields for better logging
-        subject = task_context.get('subject', 'the subject')
-        study_goal = task_context.get('study_goal', 'learning effectively')
-        has_resources = len(task_context.get('resources', [])) > 0
-        has_syllabus = task_context.get('has_syllabus', False)
-        
-        logger.info(f"Generating plan for {subject} with goal: {study_goal}")
-        logger.info(f"Has resources: {has_resources}, Has syllabus: {has_syllabus}")
-        
-        # Add the original user query to the context
-        task_context['user_query'] = user_query
-        
-        # Try to use our proper multi-agent system
-        try:
-            # Check if we have a working LLM first
-            if 'llama_llm' not in globals() or globals()['llama_llm'] is None:
-                logger.warning("LLM not available for running multiagent tasks")
-                raise Exception("LLM not available")
-
-            # Try direct generation using the LLM instead of the complex agent system
-            # This is more reliable especially when CrewAI causes issues
-            return generate_direct_study_plan(globals()['llama_llm'], task_context)
-            
-        except Exception as e:
-            logger.error(f"Error in direct plan generation: {str(e)}")
-            logger.error(traceback.format_exc())
-            logger.info("Falling back to backup plan generation")
-            
-            # Create a comprehensive fallback study plan based on the context
-            return create_fallback_study_plan(task_context)
-    except Exception as e:
-        logger.error(f"Critical error in run_multiagent_tasks: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Last resort fallback - very basic plan that should always work
-        return create_basic_fallback_plan(task_context)
-
-def create_basic_fallback_plan(task_context: dict) -> str:
-    """Create a very basic fallback study plan when everything else fails"""
-    # Extract the bare minimum needed for a study plan
-    subject = task_context.get('subject', 'your subject')
-    goal = task_context.get('study_goal', 'mastering the material')
-    days = task_context.get('study_days', '5')
-    
-    # Create a super simple plan structure
-    return f"""STUDY PLAN OVERVIEW:
-I've created a study plan to help you with {subject} focused on {goal}.
-
-DAY 1:
-- Morning:
-  * Introduction to {subject} fundamentals (45 minutes)
-  * Take notes on key concepts and terminology (30 minutes)
-- Afternoon:
-  * Review your class materials and notes (60 minutes)
-  * Practice with basic examples (45 minutes)
-
-DAY 2:
-- Morning:
-  * Review previous day's material (20 minutes)
-  * Study core theories and principles (60 minutes)
-- Afternoon:
-  * Work through example problems (45 minutes)
-  * Create summary notes of what you've learned (30 minutes)
-
-DAY 3:
-- Morning:
-  * Review previous material (30 minutes)
-  * Focus on more advanced concepts (60 minutes)
-- Afternoon:
-  * Practice applying concepts to real-world scenarios (60 minutes)
-  * Self-assessment: test your understanding (30 minutes)
-
-DAY 4:
-- Morning:
-  * Review areas of difficulty identified in self-assessment (45 minutes)
-  * Deep dive into complex topics (60 minutes)
-- Afternoon:
-  * Work on practice problems focusing on difficult areas (60 minutes)
-  * Create a concept map connecting all key ideas (30 minutes)
-
-DAY 5:
-- Morning:
-  * Comprehensive review of all material (60 minutes)
-  * Practice with exam-style questions (45 minutes)
-- Afternoon:
-  * Final review of difficult concepts (45 minutes)
-  * Prepare questions for your instructor about any unclear points (30 minutes)
-
-IMPLEMENTATION TIPS:
-* Start each study session with a 5-minute review of previous material
-* Take short breaks every 25-30 minutes to maintain focus
-* Alternate between learning theory and practical application
-* Use multiple resources to reinforce your understanding
-
-This plan can be adjusted based on your progress and specific needs.
-"""
-
-def create_fallback_study_plan(task_context: dict) -> str:
-    """Create a more detailed fallback study plan using available context"""
-    try:
-        # Extract useful information from the context
-        subject = task_context.get('subject', 'the subject')
-        study_goal = task_context.get('study_goal', 'mastering the material')
-        hours_per_day = task_context.get('hours_per_day', '2')
-        study_days = task_context.get('study_days', '5')
-        learning_style = task_context.get('learning_style', 'visual')
-        difficult_topics = task_context.get('difficult_topics', [])
-        
-        # Extract resource information
-        resources = []
-        if task_context.get('resources'):
-            for resource in task_context['resources'][:3]:  # Use up to 3 resources
-                resources.append(f"- {resource.get('name', 'Resource')}")
-        
-        # Create resource recommendations based on available information
-        resource_text = "\n".join(resources) if resources else "- Use your course textbook and lecture notes\n- Look for online tutorials and videos on the subject"
-        
-        # Create a study approach based on learning style
-        study_approach = ""
-        if learning_style.lower() == 'visual':
-            study_approach = "This plan emphasizes visual learning methods like diagrams, charts, and video resources."
-        elif learning_style.lower() == 'auditory':
-            study_approach = "This plan emphasizes auditory learning methods like lectures, discussions, and explaining concepts out loud."
-        elif learning_style.lower() == 'kinesthetic':
-            study_approach = "This plan emphasizes hands-on learning methods like practice exercises and real-world applications."
-        else:
-            study_approach = "This plan balances different learning methods to help you master the material effectively."
-            
-        # Adjust for difficult topics
-        difficulty_focus = ""
-        if difficult_topics:
-            topics = ", ".join(difficult_topics[:3])
-            difficulty_focus = f"I've allocated extra time for topics you find challenging: {topics}."
-            
-        # Create the plan
-        return f"""STUDY PLAN OVERVIEW:
-I've created a personalized {study_days}-day study plan for {subject} focused on {study_goal}. {study_approach} {difficulty_focus}
-
-DAY 1:
-- Morning:
-  * Introduction to key concepts in {subject} (45 minutes)
-  * Create a glossary of important terms and definitions (30 minutes)
-- Afternoon:
-  * Review foundational principles using your resources (60 minutes)
-  * Practice applying basic concepts through exercises (45 minutes)
-
-DAY 2:
-- Morning:
-  * Review previous day's material with flashcards (20 minutes)
-  * Study intermediate concepts and principles (60 minutes)
-- Afternoon:
-  * Work through example problems (45 minutes)
-  * Create visual summaries or diagrams of key relationships (30 minutes)
-
-DAY 3:
-- Morning:
-  * Quiz yourself on previously covered material (30 minutes)
-  * Focus on more advanced topics in {subject} (60 minutes)
-- Afternoon:
-  * Apply concepts to practical scenarios or problems (60 minutes)
-  * Identify areas where you need more practice (30 minutes)
-
-DAY 4:
-- Morning:
-  * Deep review of difficult concepts and topics (45 minutes)
-  * Study advanced applications and techniques (60 minutes)
-- Afternoon:
-  * Practice with complex problems and scenarios (60 minutes)
-  * Summarize what you've learned in your own words (30 minutes)
-
-DAY 5:
-- Morning:
-  * Comprehensive review of all material (60 minutes)
-  * Take a practice test or work through sample problems (45 minutes)
-- Afternoon:
-  * Address gaps in knowledge identified from practice test (45 minutes)
-  * Create a final summary document of key concepts and techniques (30 minutes)
-
-RECOMMENDED RESOURCES:
-{resource_text}
-
-IMPLEMENTATION TIPS:
-* Use the Pomodoro technique: 25 minutes of focused study followed by 5-minute breaks
-* Connect new information to concepts you already understand
-* Explain concepts out loud as if teaching someone else
-* Review material before sleep to improve retention
-
-You can adjust this plan based on your progress and specific needs.
-"""
-    except Exception as e:
-        logger.error(f"Error creating fallback plan: {str(e)}")
-        return create_basic_fallback_plan(task_context)
-
-def generate_direct_study_plan(llm, task_context: dict) -> str:
-    """Generate a study plan directly using an LLM without using CrewAI agents"""
-    try:
-        # Create the direct prompt using just the LLM
-        subject = task_context.get("subject", "your subject")
-        subject_details = task_context.get("subject_details", "")
-        study_goal = task_context.get("study_goal", "Learning more")
-        resources = task_context.get("resources", [])
-        books = task_context.get("books", [])
-        videos = task_context.get("videos", [])
-        websites = task_context.get("websites", [])
-        other_resources = task_context.get("other_resources", [])
-        study_days = task_context.get("days_until_exam", 7)
-        hours_per_day = task_context.get("hours_per_day", 2)
-        learning_style = task_context.get("learning_style", "")
-        difficulty_level = task_context.get("difficulty_level", "intermediate")
-        has_syllabus = task_context.get("has_syllabus", False)
-        syllabus_content = task_context.get("syllabus_content", "")
-        syllabus_sessions = task_context.get("syllabus_sessions", [])
-        difficult_topics = task_context.get("difficult_topics", [])
-        
-        # Log information about key context parameters
-        logger.debug("=" * 50)
-        logger.debug("STUDY PLAN GENERATION: KEY CONTEXT PARAMETERS")
-        logger.debug(f"Subject: {subject}")
-        logger.debug(f"Goal: {study_goal}")
-        logger.debug(f"Days: {study_days}")
-        logger.debug(f"Hours/day: {hours_per_day}")
-        logger.debug(f"Resources: {len(resources)}")
-        logger.debug(f"Has syllabus: {has_syllabus}")
-        logger.debug(f"Syllabus sessions: {len(syllabus_sessions)}")
-        logger.debug(f"Difficult topics: {difficult_topics}")
-        logger.debug("-" * 50)
-        
-        # Create the prompt
-        prompt = f"""
-You are an expert study planner who creates personalized, detailed study plans tailored to the needs and parameters provided by the student.
-
-Here's the information about the student and their study needs:
-
-SUBJECT: {subject}
-{subject_details}
-
-STUDY GOAL: {study_goal}
-
-TIME FRAME: {study_days} days with approximately {hours_per_day} hours per day available for study
-
-DIFFICULTY LEVEL: {difficulty_level}
-"""
-
-        if learning_style:
-            prompt += f"\nLEARNING STYLE: {learning_style}"
-        
-        if has_syllabus and syllabus_sessions:
-            prompt += f"\n\nCOURSE SYLLABUS (key sessions):\n"
-            for i, session in enumerate(syllabus_sessions[:20]):  # Only include up to 20 sessions to keep prompt length reasonable
-                prompt += f"- {session}\n"
-            if len(syllabus_sessions) > 20:
-                prompt += f"- And {len(syllabus_sessions) - 20} more sessions\n"
-        
-        if difficult_topics:
-            prompt += f"\n\nDIFFICULT TOPICS (need extra focus):\n"
-            for topic in difficult_topics:
-                prompt += f"- {topic}\n"
-        
-        if resources:
-            prompt += "\n\nAVAILABLE RESOURCES:\n"
-            
-            if books:
-                prompt += "Books:\n"
-                for book in books[:5]:  # Limit to 5 to keep prompt size reasonable
-                    prompt += f"- {book}\n"
-                if len(books) > 5:
-                    prompt += f"- And {len(books) - 5} more books\n"
-            
-            if videos:
-                prompt += "Videos:\n"
-                for video in videos[:5]:
-                    prompt += f"- {video}\n"
-                if len(videos) > 5:
-                    prompt += f"- And {len(videos) - 5} more videos\n"
-            
-            if websites:
-                prompt += "Websites:\n"
-                for website in websites[:5]:
-                    prompt += f"- {website}\n"
-                if len(websites) > 5:
-                    prompt += f"- And {len(websites) - 5} more websites\n"
-        
-        prompt += f"""
-Based on the information above, create a comprehensive {study_days}-day study plan for {subject}.
-
-Your study plan MUST follow this exact format:
-
-STUDY PLAN OVERVIEW:
-[Brief overview of the approach and structure of the study plan]
-
-DAY 1:
-[Detailed activities for day 1, including specific topics to cover, time allocations, and which resources to use]
-
-DAY 2:
-[Detailed activities for day 2]
-
-... and so on for each day ...
-
-RECOMMENDED RESOURCES:
-[List of specific resources recommended for each topic, with explanations of why they are valuable]
-
-IMPLEMENTATION TIPS:
-[Practical advice for implementing the study plan effectively, addressing potential challenges]
-
-Do not deviate from this format. The day headings must be formatted exactly as shown.
-"""
-        
-        # Log the entire prompt
-        logger.debug("STUDY PLAN GENERATION: FULL PROMPT")
-        logger.debug("-" * 50)
-        logger.debug(prompt)
-        logger.debug("-" * 50)
-        
-        # Generate the plan
-        logger.info("Generating study plan directly with LLM")
-        start_time = time.time()
-        
-        # Get response from LLM
-        try:
-            logger.info(f"Invoking LLM of type {type(llm).__name__}")
-            if hasattr(llm, 'base_url'):
-                logger.info(f"LLM base_url: {llm.base_url}")
-            if hasattr(llm, 'model'):
-                logger.info(f"LLM model: {llm.model}")
-                
-            # Try direct API call if langchain fails
-            try:
-                response = llm.invoke(prompt)
-                if not response or len(response.strip()) < 100:
-                    logger.warning(f"LLM returned short response: {len(response) if response else 0} chars")
-                    logger.warning(f"Response content: {response}")
-                    
-                    # Try direct API call as fallback
-                    logger.info("Trying direct API call as fallback")
-                    api_response = requests.post(
-                        "http://localhost:11434/api/generate",
-                        json={"model": "llama3:8b", "prompt": prompt, "stream": False},
-                        timeout=600
-                    )
-                    if api_response.status_code == 200:
-                        response = api_response.json().get('response', '')
-                        logger.info(f"Direct API call succeeded, got response of length {len(response)}")
-                    else:
-                        logger.error(f"Direct API call failed: {api_response.status_code}")
-            except Exception as llm_error:
-                logger.error(f"Error during LLM invocation: {str(llm_error)}")
-                logger.error(traceback.format_exc())
-                
-                # Try direct API call
-                logger.info("Trying direct API call after LLM error")
-                api_response = requests.post(
-                    "http://localhost:11434/api/generate",
-                    json={"model": "llama3:8b", "prompt": prompt, "stream": False},
-                    timeout=600
-                )
-                if api_response.status_code == 200:
-                    response = api_response.json().get('response', '')
-                    logger.info(f"Direct API call succeeded, got response of length {len(response)}")
-                else:
-                    logger.error(f"Direct API call failed: {api_response.status_code}")
-                    raise Exception(f"Both LLM and direct API calls failed")
-        except Exception as e:
-            logger.error(f"All attempts to generate study plan failed: {str(e)}")
-            return create_fallback_study_plan(task_context)
-        
-        execution_time = time.time() - start_time
-        logger.info(f"Generated plan in {execution_time:.2f} seconds")
-        
-        # Log the entire response
-        logger.debug("STUDY PLAN GENERATION: FULL RESPONSE")
-        logger.debug("-" * 50)
-        logger.debug(response)
-        logger.debug("=" * 50)
-        
-        # Validate the response
-        if not response or len(response.strip()) < 200:
-            logger.warning(f"Direct LLM plan generation produced short output: {len(response) if response else 0} chars")
-            return create_fallback_study_plan(task_context)
-            
-        # Make sure it has the right format
-        if "STUDY PLAN OVERVIEW:" not in response and "DAY 1:" not in response:
-            logger.warning("Direct LLM plan doesn't have the required format")
-            
-            # Try to fix the format
-            if "Day 1" in response or "day 1" in response:
-                # It has days but wrong format, try to correct it
-                fixed_response = "STUDY PLAN OVERVIEW:\n"
-                fixed_response += "Here is your personalized study plan for " + subject + ".\n\n"
-                
-                # Add the days with correct formatting
-                for i in range(1, int(study_days) + 1):
-                    day_pattern = f"[Dd]ay {i}|DAY {i}"
-                    if re.search(day_pattern, response):
-                        # Extract the day's content
-                        day_match = re.search(f"{day_pattern}.*?(?=[Dd]ay {i+1}|DAY {i+1}|$)", response, re.DOTALL)
-                        if day_match:
-                            day_content = day_match.group(0)
-                            # Format it correctly
-                            fixed_response += f"DAY {i}:\n"
-                            fixed_response += day_content.replace(f"Day {i}", "").replace(f"day {i}", "").replace(f"DAY {i}", "")
-                            fixed_response += "\n"
-                
-                # Add the rest of the sections if they exist
-                if "RESOURCES" in response or "Resources" in response:
-                    resources_match = re.search("(?:RESOURCES|Resources).*?(?=IMPLEMENTATION|Implementation|$)", response, re.DOTALL)
-                    if resources_match:
-                        fixed_response += "\nRECOMMENDED RESOURCES:\n"
-                        fixed_response += resources_match.group(0).replace("RESOURCES", "").replace("Resources", "")
-                
-                if "IMPLEMENTATION" in response or "Implementation" in response:
-                    implementation_match = re.search("(?:IMPLEMENTATION|Implementation).*", response, re.DOTALL)
-                    if implementation_match:
-                        fixed_response += "\nIMPLEMENTATION TIPS:\n"
-                        fixed_response += implementation_match.group(0).replace("IMPLEMENTATION", "").replace("Implementation", "")
-                
-                response = fixed_response
-                
-                # Log the fixed response
-                logger.debug("STUDY PLAN GENERATION: FIXED RESPONSE")
-                logger.debug("-" * 50)
-                logger.debug(response)
-                logger.debug("=" * 50)
-            else:
-                # It doesn't even have days, use fallback
-                return create_fallback_study_plan(task_context)
-        
-        return response
-    except Exception as e:
-        logger.error(f"Error in direct study plan generation: {str(e)}")
-        logger.error(traceback.format_exc())
-        return create_fallback_study_plan(task_context)
+    logger.info("Starting explicit multi-agent study plan generation")
+    task_context = dict(task_context)
+    task_context["user_query"] = user_query
+    engine = create_engine()
+    result = engine.generate(task_context, progress=progress_callback)
+    return result.model_dump()
 
 # Add these missing functions after the updated send_chat_message endpoint
 async def process_chat_message_background(
@@ -2235,14 +1305,15 @@ async def process_chat_message_background(
     session_id: int,
     message: str,
     current_user: User,
-    db: Session,
 ):
     """Process a chat message in the background and store the result"""
     start_time = time.time()
     task_type = "chat"
     error = None
+    db = None
     
     try:
+        db = SessionLocal()
         # Check if this is a study plan request
         is_study_plan_request = check_if_study_plan_request(message)
         is_revision, _, _, _ = check_if_study_plan_revision(message, db, session_id)
@@ -2252,57 +1323,35 @@ async def process_chat_message_background(
         elif is_revision:
             task_type = "study_plan_revision"
         
-        # This runs the actual processing logic
+        def progress(stage: str, progress_message: str) -> None:
+            job_store.event(request_id, stage=stage, message=progress_message, status="running")
+
         logger.info(f"Background processing started for request {request_id} (type: {task_type})")
-        
-        # Reuse the logic from send_chat_message
         result = await send_chat_message_internal(
             session_id=session_id,
             message=message,
             current_user=current_user,
-            db=db
+            db=db,
+            progress_callback=progress,
         )
-        
-        # Store the result in memory
-        if request_id in processing_requests:
-            processing_requests[request_id]["status"] = "complete"
-            processing_requests[request_id]["result"] = result
-            processing_requests[request_id]["completed_at"] = datetime.now().isoformat()
-            processing_requests[request_id]["processing_time"] = time.time() - start_time
-            
-            # Also update the persisted data
-            save_request_data(request_id, processing_requests[request_id])
-        
-            logger.info(f"Background processing completed for request {request_id}")
-            
-            # Capture metrics after successful processing
-            await capture_processing_metrics(
-                request_id=request_id,
-                session_id=session_id,
-                task_type=task_type,
-                start_time=start_time,
-                result_data=result
-            )
-        else:
-            logger.error(f"Request {request_id} not found in memory when storing result")
+
+        job_store.succeed(request_id, result)
+        logger.info(f"Background processing completed for request {request_id}")
+        await capture_processing_metrics(
+            request_id=request_id,
+            session_id=session_id,
+            task_type=task_type,
+            start_time=start_time,
+            result_data=result
+        )
     except Exception as e:
         error = e
         logger.error(f"Error in background processing: {str(e)}")
         logger.error(traceback.format_exc())
-        
-        # Store the error
-        if request_id in processing_requests:
-            processing_requests[request_id]["status"] = "error"
-            processing_requests[request_id]["error"] = str(e)
-            processing_requests[request_id]["completed_at"] = datetime.now().isoformat()
-            processing_requests[request_id]["processing_time"] = time.time() - start_time
-            
-            # Update persisted data
-            save_request_data(request_id, processing_requests[request_id])
+        if isinstance(e, StudyPlanEngineError):
+            job_store.fail(request_id, stage=e.stage, message=e.message, retryable=e.retryable)
         else:
-            logger.error(f"Request {request_id} not found in memory when trying to update error status")
-        
-        # Capture metrics for the error case
+            job_store.fail(request_id, stage=task_type, message=str(e), retryable=True)
         await capture_processing_metrics(
             request_id=request_id,
             session_id=session_id,
@@ -2310,21 +1359,21 @@ async def process_chat_message_background(
             start_time=start_time,
             error=e
         )
+    finally:
+        if db is not None:
+            db.close()
 
 async def send_chat_message_internal(
     session_id: int,
     message: str,
     current_user: User,
     db: Session,
+    progress_callback=None,
 ):
     """Internal function to process a chat message and return the result"""
     try:
         # Recreate the logic from send_chat_message but without HTTP response
         logger.info(f"Processing chat message for session {session_id}")
-        
-        # Add global declarations for all the variables we might need
-        global has_multiagent, llama_llm, strategy_agent, resources_agent, planner_agent
-        global strategist_task, resources_task, planner_task, data_fetcher_agent
         
         # Check if session exists
         session = db.query(StudySession).filter(StudySession.id == session_id).first()
@@ -2354,9 +1403,11 @@ async def send_chat_message_internal(
         is_study_plan_request = check_if_study_plan_request(message)
         logger.info(f"Is study plan request: {is_study_plan_request}")
         logger.info(f"Is revision request: {is_revision}")
+        engine_name = "chat"
         
-        # If it's a revision request and we have multiagent, generate a new plan
-        if is_revision and has_multiagent and llama_llm is not None:
+        # If it's a revision request, generate a new plan through the explicit engine
+        if is_revision:
+            engine_name = "multi_agent"
             logger.info(f"Generating revised study plan. Difficult topics: {difficult_topics}")
             
             # Get comprehensive user context
@@ -2385,50 +1436,35 @@ async def send_chat_message_internal(
                 # Run the multiagent process to generate revised study plan
                 revised_plan = await run_multiagent_tasks(
                     user_query=f"Please revise the study plan based on my feedback: {message}",
-                    task_context=task_context
+                    task_context=task_context,
+                    progress_callback=progress_callback,
                 )
                 
                 # Create a conversational response that presents the revised plan
-                response_text = f"I've created a revised study plan based on your feedback. I've allocated more time for the topics you're finding challenging and adjusted the resource recommendations.\n\n{revised_plan}"
+                response_text = f"I've created a revised study plan based on your feedback. I've allocated more time for the topics you're finding challenging and adjusted the resource recommendations.\n\n{revised_plan['content']}"
                 
             except Exception as e:
                 logger.error(f"Error generating revised study plan: {str(e)}")
                 logger.error(traceback.format_exc())
-                
-                # Fall back to regular chat mode
-                response_text = get_ollama_response(session, message, db)
-                response_text = "I understand you want to modify your study plan. " + response_text
+                raise
                 
         # If it's an initial study plan request, process it with the multiagent system
         elif is_study_plan_request:
-            logger.info("Detected study plan request. Attempting to use CrewAI")
-            
-            # First check if we have working Ollama regardless of agents
-            if llama_llm is not None:
-                try:
-                    # Always use the new multiagent task runner for study plans
-                    logger.info("Using multiagent system for study plan")
-                    # Get comprehensive user context with syllabus and resources
-                    task_context = get_user_task_context(db, current_user, session)
-                
-                    # Run the multiagent process to generate study plan
-                    response_text = await run_multiagent_tasks(
-                        user_query=message,
-                        task_context=task_context
-                    )
-                
-                    # Verify the response has the expected format
-                    if response_text and len(response_text) > 100:
-                        logger.info(f"Successfully generated study plan with {len(response_text)} characters")
-                    else:
-                        logger.warning(f"Study plan seems too short ({len(response_text) if response_text else 0} chars)")
-                except Exception as e:
-                    logger.error(f"Error generating study plan: {str(e)}")
-                    logger.error(traceback.format_exc())
-                    response_text = f"I'm sorry, but I encountered an error while creating your study plan: {str(e)}. Please try again later."
-            else:
-                # No Ollama available
-                response_text = "I apologize, but I don't have access to language models at the moment. Please ensure Ollama is running on your system with the command 'ollama run llama3:8b'."
+            engine_name = "multi_agent"
+            logger.info("Detected study plan request. Using explicit multi-agent engine")
+            try:
+                task_context = get_user_task_context(db, current_user, session)
+                engine_result = await run_multiagent_tasks(
+                    user_query=message,
+                    task_context=task_context,
+                    progress_callback=progress_callback,
+                )
+                response_text = engine_result["content"]
+                logger.info(f"Successfully generated study plan with {len(response_text)} characters")
+            except Exception as e:
+                logger.error(f"Error generating study plan: {str(e)}")
+                logger.error(traceback.format_exc())
+                raise
         else:
             # Regular chat message (not a study plan request)
             if llama_llm is not None:
@@ -2442,44 +1478,42 @@ async def send_chat_message_internal(
                     error_str = str(e).lower()
                     if "connection" in error_str or "timeout" in error_str or "refused" in error_str:
                         response_text = (
-                            "I apologize, but I cannot connect to the language model. Please make sure Ollama is running "
-                            "with the command 'ollama run llama3:8b'. Technical details: Connection error"
+                            "I apologize, but I cannot connect to Ollama. Please make sure it is running "
+                            f"with model '{settings.OLLAMA_MODEL}'. Technical details: Connection error"
                         )
                     else:
                         response_text = (
-                            f"I apologize, but there seems to be an issue with the language model. "
+                            f"I apologize, but there seems to be an issue with the planning service. "
                             f"Technical details: {str(e)}"
                         )
             else:
-                # No LLM available
-                logger.warning("No LLM available, using placeholder response")
+                logger.warning("Ollama unavailable; returning setup guidance")
                 
                 # Try to initialize Ollama right here if it's not already available
                 try:
                     if 'llama_llm' not in globals() or globals()['llama_llm'] is None:
-                        logger.info("Attempting to initialize Ollama LLM directly")
+                        logger.info("Attempting to initialize Ollama directly")
                         from langchain.llms import Ollama
                         globals()['llama_llm'] = Ollama(
-                            model="llama3:8b", 
-                            base_url="http://localhost:11434",
+                            model=settings.OLLAMA_MODEL,
+                            base_url=settings.OLLAMA_BASE_URL,
                             temperature=0.7
                         )
                         test_response = globals()['llama_llm'].invoke("hello", timeout=5)
                         logger.info(f"Successfully initialized Ollama directly: {test_response[:50]}...")
-                        return await send_chat_message_internal(session_id, message, current_user, db)  # Retry now that we have LLM
+                        return await send_chat_message_internal(session_id, message, current_user, db)
                 except Exception as e:
                     logger.error(f"Failed to initialize Ollama directly: {str(e)}")
                 
-                server_url = "http://localhost:11434"
                 response_text = (
-                    "I apologize, but I don't have access to language models at the moment. "
-                    f"Please ensure Ollama is running on your system with the command 'ollama run llama3:8b'. "
-                    f"The server should be available at {server_url}."
+                    "I apologize, but the planning service is unavailable at the moment. "
+                    f"Please ensure Ollama is running with model '{settings.OLLAMA_MODEL}'. "
+                    f"The server should be available at {settings.OLLAMA_BASE_URL}."
                 )
         
         # Check if response_text is None or empty, and use a fallback if needed
         if not response_text or response_text.strip() == "":
-            logger.warning("LLM response is empty. Using fallback message.")
+            logger.warning("Ollama response is empty. Returning setup guidance.")
             response_text = "Sorry, I couldn't generate a response. Please try again shortly."
         
         # Create assistant message in the database
@@ -2498,7 +1532,8 @@ async def send_chat_message_internal(
             "message_id": assistant_message.id,
             "role": "assistant",
             "content": response_text,
-            "timestamp": assistant_message.timestamp.isoformat()
+            "timestamp": assistant_message.timestamp.isoformat(),
+            "engine": engine_name,
         }
         
     except Exception as e:
@@ -2555,11 +1590,9 @@ async def capture_processing_metrics(
             "error_message": str(error) if error else None
         }
         
-        # Create directory if it doesn't exist
-        os.makedirs("./data/metrics", exist_ok=True)
+        os.makedirs(os.path.dirname(settings.METRICS_PATH), exist_ok=True)
         
-        # Append to metrics file
-        with open("./data/metrics/processing_metrics.jsonl", "a") as f:
+        with open(settings.METRICS_PATH, "a") as f:
             f.write(json.dumps(metrics_data) + "\n")
             
     except Exception as e:
@@ -2578,7 +1611,7 @@ def get_processing_metrics_summary(session_id: Optional[int] = None, limit: int 
         Dictionary with metrics summary
     """
     try:
-        metrics_path = "./data/metrics/processing_metrics.jsonl"
+        metrics_path = settings.METRICS_PATH
         if not os.path.exists(metrics_path):
             return {
                 "status": "no_data",
@@ -2678,25 +1711,23 @@ async def get_session_metrics(
     # Get the metrics summary
     metrics = get_processing_metrics_summary(session_id=session_id)
     
-    # Add LLM status information
-    llm_status = {
+    service_status = {
         "ollama_available": ollama_available,
         "ollama_error": ollama_last_error,
-        "has_multiagent": has_multiagent,
-        "has_orchestrator": "orchestrator" in globals() and globals()["orchestrator"] is not None,
+        "study_plan_engine": "bounded_orchestrator_ollama",
     }
     
     # System health check
     system_health = {
-        "memory_usage_mb": round(psutil.Process().memory_info().rss / (1024 * 1024), 2) if 'psutil' in sys.modules else None,
+        "memory_usage_mb": round(psutil.Process().memory_info().rss / (1024 * 1024), 2),
         "api_uptime_minutes": round((time.time() - globals().get("start_time", time.time())) / 60, 2) if "start_time" in globals() else None,
-        "queue_size": len(processing_requests)
+        "queue_size": 0
     }
     
     return {
         "session_id": session_id,
         "metrics": metrics,
-        "llm_status": llm_status,
+        "service_status": service_status,
         "system_health": system_health
     }
 

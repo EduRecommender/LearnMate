@@ -78,31 +78,40 @@ const TIME_AVAILABILITY = [
 
 const SCHEDULE_TYPES = ['Not Set', 'Flexible', 'Structured', 'Intensive'];
 
+const defaultPreferences = {
+  name: '',
+  level: 'Not Set',
+  grade_level: 'Not Set',
+  major: '',
+  subject_interest: [] as string[],
+  learning_styles: [] as string[],
+  preferred_study_methods: [] as string[],
+  preferred_difficulty: 'Not Set',
+  time_available_per_week: 'Not Set',
+  preferred_schedule: 'Not Set',
+  additional_notes: '',
+  has_set_preferences: false,
+  has_skipped_preferences: false,
+};
+
 export default function PreferencesPage() {
   const router = useRouter();
   const { user, updatePreferences, error, isLoading } = useAuth();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    level: 'Not Set',
-    grade_level: 'Not Set',
-    major: '',
-    subject_interest: [] as string[],
-    learning_styles: [] as string[],
-    preferred_study_methods: [] as string[],
-    preferred_difficulty: 'Not Set',
-    time_available_per_week: 'Not Set',
-    preferred_schedule: 'Not Set',
-    additional_notes: '',
-    has_set_preferences: false,
-    has_skipped_preferences: false,
-  });
+  const [formData, setFormData] = useState(defaultPreferences);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/auth/login');
     } else if (user?.preferences) {
-      setFormData(user.preferences);
+      const savedPreferences = user.preferences as Partial<typeof defaultPreferences>;
+      setFormData({
+        ...defaultPreferences,
+        ...savedPreferences,
+        subject_interest: savedPreferences.subject_interest || [],
+        learning_styles: savedPreferences.learning_styles || [],
+        preferred_study_methods: savedPreferences.preferred_study_methods || [],
+      });
     }
   }, [user, isLoading, router]);
 
@@ -488,4 +497,4 @@ export default function PreferencesPage() {
       </div>
     </AppLayout>
   );
-} 
+}

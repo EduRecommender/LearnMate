@@ -1,0 +1,1 @@
+Spaced repetition schedules repeated review across increasing intervals. For exams, revisit weak topics daily at first, then every few days. Combine spacing with retrieval practice instead of passive rereading. Short review blocks are usually better than one long cram block.

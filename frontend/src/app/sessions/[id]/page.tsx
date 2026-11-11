@@ -53,144 +53,50 @@ export default function SessionDetailPage() {
   // Send chat message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      console.log('[TIMEOUT-DEBUG] Starting message submission process', {
-        time: new Date().toISOString(),
-        sessionId: id,
-        messageLength: message.length
-      });
-      
-      try {
-        // Step 1: Submit the message but don't wait for processing
-        const submitResponse = await apiClient.chat.startMessageProcessing(id as string, message);
-        const requestId = submitResponse.request_id;
-        
-        console.log('[TIMEOUT-DEBUG] Message submitted, received request ID:', requestId);
-        
-        // Step 2: Poll for results
-        const startTime = performance.now();
-        let elapsedTime = 0;
-        let isComplete = false;
-        let result = null;
-        let lastPollTime = 0;
-        let consecutiveEmptyResponses = 0;
-        
-        // Display initial loading message
+      const submitResponse = await apiClient.chat.startMessageProcessing(id as string, message);
+      const requestId = submitResponse.request_id;
+
+      const updateProgress = (content: string, stage?: string) => {
         setChatHistory(prev => [
           ...prev.filter(msg => !(msg.role === 'assistant' && (msg.isTyping || msg.content === '...'))),
-          { 
-            role: 'assistant', 
-            content: 'Generating response...', 
+          {
+            role: 'assistant',
+            content,
             timestamp: new Date().toISOString(),
-            isTyping: true
+            isTyping: true,
+            stage,
           }
         ]);
-        
-        // Poll until complete or timeout
-        while (!isComplete && elapsedTime < 7200000) { // 2 hour total limit (was 10 minutes)
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds between polls
-          
-          elapsedTime = performance.now() - startTime;
-          lastPollTime = performance.now();
-          
-          try {
-            // Update loading message periodically with time estimate
-            if (elapsedTime > 30000) { // After 30 seconds, show time elapsed
-              const timeElapsedSec = Math.round(elapsedTime / 1000);
-              const timeElapsedMin = Math.floor(timeElapsedSec / 60);
-              const remainingSec = timeElapsedSec % 60;
-              const timeDisplay = timeElapsedMin > 0 
-                ? `${timeElapsedMin}m ${remainingSec}s` 
-                : `${timeElapsedSec}s`;
-              
-              setChatHistory(prev => {
-                const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.isTyping));
-                return [
-                  ...filtered, 
-                  { 
-                    role: 'assistant', 
-                    content: `Still working (${timeDisplay})... This process can take several minutes, please be patient.`, 
-                    timestamp: new Date().toISOString(),
-                    isTyping: true
-                  }
-                ];
-              });
-            }
-            
-            // Check if response is ready
-            const statusResponse = await apiClient.chat.checkMessageStatus(id as string, requestId);
-            
-            if (statusResponse.status === 'complete') {
-              if (statusResponse.result && statusResponse.result.content) {
-                isComplete = true;
-                result = statusResponse.result;
-                console.log('[TIMEOUT-DEBUG] Response complete after', Math.round(elapsedTime / 1000), 'seconds');
-                console.log('[TIMEOUT-DEBUG] Response content length:', result.content.length);
-                console.log('[TIMEOUT-DEBUG] Response preview:', result.content.substring(0, 100));
-                break;
-              } else {
-                console.warn('[TIMEOUT-DEBUG] Status is complete but result is empty or invalid');
-                consecutiveEmptyResponses++;
-                
-                if (consecutiveEmptyResponses >= 3) {
-                  // After 3 consecutive empty responses, try a different approach
-                  console.warn('[TIMEOUT-DEBUG] Multiple empty responses detected, trying to fetch chat history');
-                  const chatHistory = await apiClient.chat.getHistory(id as string);
-                  
-                  if (chatHistory && chatHistory.length > 0) {
-                    // Find the latest assistant message
-                    const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.role === 'assistant');
-                    
-                    if (latestAssistantMessage && latestAssistantMessage.content) {
-                      console.log('[TIMEOUT-DEBUG] Found assistant message in history:', latestAssistantMessage);
-                      isComplete = true;
-                      result = latestAssistantMessage;
-                      break;
-                    }
-                  }
-                }
-              }
-            } else {
-              console.log('[TIMEOUT-DEBUG] Still processing after', Math.round(elapsedTime / 1000), 'seconds');
-              consecutiveEmptyResponses = 0; // Reset counter when we get a non-complete status
-            }
-          } catch (pollError) {
-            console.error('[TIMEOUT-DEBUG] Error during polling:', pollError);
-            
-            // If polling error persists for over 30 seconds, try to fetch the latest messages directly
-            if (performance.now() - lastPollTime > 30000) {
-              try {
-                console.warn('[TIMEOUT-DEBUG] Polling issues, trying direct chat history fetch');
-                const chatHistory = await apiClient.chat.getHistory(id as string);
-                
-                if (chatHistory && chatHistory.length > 0) {
-                  // Find the latest assistant message
-                  const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.role === 'assistant');
-                  
-                  if (latestAssistantMessage && latestAssistantMessage.content) {
-                    console.log('[TIMEOUT-DEBUG] Found assistant message in history:', latestAssistantMessage);
-                    isComplete = true;
-                    result = latestAssistantMessage;
-                    break;
-                  }
-                }
-              } catch (historyError) {
-                console.error('[TIMEOUT-DEBUG] Failed to fetch chat history:', historyError);
-              }
-            }
-            
-            // Continue polling despite errors
+      };
+
+      updateProgress('Queued study assistant request...', 'context');
+
+      try {
+        await apiClient.chat.streamEvents(id as string, requestId, (event) => {
+          if (event.status === 'failed') {
+            updateProgress(event.message || 'Generation failed.', event.stage);
+            return;
           }
-        }
-        
-        if (!isComplete) {
-          throw new Error('Request processing exceeded maximum time limit (2 hours). The system may be overloaded or your request is too complex. Please try again later with a simpler query.');
-        }
-        
-        return result;
-      } catch (error) {
-        console.error('[TIMEOUT-DEBUG] Error in message processing:', error);
-        throw error;
+          updateProgress(event.message || `Working on ${event.stage}...`, event.stage);
+        });
+      } catch (streamError) {
+        console.warn('[CHAT] Progress stream unavailable; falling back to polling.', streamError);
       }
+
+      const started = performance.now();
+      while (performance.now() - started < 15 * 60 * 1000) {
+        const statusResponse = await apiClient.chat.checkMessageStatus(id as string, requestId);
+        if (statusResponse.status === 'succeeded' && statusResponse.result?.content) {
+          return statusResponse.result;
+        }
+        if (statusResponse.status === 'failed') {
+          throw new Error(statusResponse.error?.message || 'Study assistant request failed.');
+        }
+        updateProgress(statusResponse.stage ? `Still working on ${statusResponse.stage}...` : 'Still working...', statusResponse.stage);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+
+      throw new Error('Request processing exceeded 15 minutes. Please try again with a smaller request.');
     },
     onMutate: () => {
       console.log('[TIMEOUT-DEBUG] onMutate triggered - adding user message', {
@@ -253,7 +159,8 @@ export default function SessionDetailPage() {
           role: 'assistant',
           content: data.content,
           message_id: data.message_id,
-          timestamp: data.timestamp
+          timestamp: data.timestamp,
+          engine: data.engine
         }];
       });
       
@@ -664,22 +571,14 @@ export default function SessionDetailPage() {
       }
     }
     
-    // Check if this message was generated by the multiagent system
-    const isMultiagentResponse = message.role === 'assistant' && 
-      (message.content.includes('STUDY PLAN OVERVIEW:') || 
-       message.content.includes('DAY 1:') || 
-       message.content.includes('DAY 2:') ||
-       message.content.includes('WEEK 1-2:') ||
-       message.content.includes('WEEK 3-4:') ||
-       message.content.includes('SEARCH QUERIES USED:') ||
-       message.content.includes('RESOURCES FOUND FOR THIS STRATEGY:'));
+    const isMultiagentResponse = message.role === 'assistant' && message.engine === 'multi_agent';
        
     // Check if this message contains an Ollama error
     const hasOllamaError = message.role === 'assistant' && 
       (message.content.includes('Cannot connect to Ollama server') || 
        message.content.includes('Error: Multiagent system not available') ||
-       message.content.includes('To use the AI-powered study plan generator, please make sure Ollama is running') ||
-       message.content.includes('I apologize, but I don\'t have access to language models at the moment'));
+       message.content.includes('To use the study plan generator, please make sure Ollama is running') ||
+       message.content.includes('I apologize, but the planning service is unavailable at the moment'));
     
     console.log(`[DEBUG] Rendering message ${index}:`, {
       role: message.role,
@@ -727,9 +626,9 @@ export default function SessionDetailPage() {
           {isMultiagentResponse && (
             <div className="mb-2 flex items-center">
               <span className="bg-purple-100 text-purple-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded">
-                AI Study Plan
+                Study Plan
               </span>
-              <span className="text-xs text-gray-500">Generated with multi-agent planning</span>
+              <span className="text-xs text-gray-500">Multi-agent planning</span>
             </div>
           )}
           
@@ -1237,4 +1136,4 @@ export default function SessionDetailPage() {
       </div>
     </AppLayout>
   );
-} 
+}

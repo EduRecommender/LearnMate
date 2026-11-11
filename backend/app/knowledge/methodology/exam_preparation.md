@@ -1,0 +1,1 @@
+Exam preparation should move from diagnosis to targeted practice to timed rehearsal. Early sessions identify weak topics. Middle sessions build skill through practice and feedback. Final sessions prioritize mixed review, mock questions, formula/concept recall, and sleep-friendly review instead of late overload.

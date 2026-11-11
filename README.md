@@ -1,174 +1,278 @@
 # LearnMate
 
-### Web App Links:
-- Recommendation System: [Link](https://learnmate.streamlit.app/)
-- EDA + Data Vizualization for Data Scientists: [Link](https://learnmate-eda.streamlit.app)
+LearnMate is a study-planning web application built with FastAPI, Next.js, SQLite, and local Ollama. It lets a student create study sessions, upload course material, keep chat history, and generate a structured plan that is grounded in the session context and uploaded resources.
 
-### Run:
+The main engineering focus is the study-plan workflow. Instead of treating the model as a one-shot answer generator, LearnMate runs a bounded orchestrator agent that delegates work to specialist agents, lets agents use scoped retrieval tools, validates intermediate outputs, streams progress to the frontend, and fails explicitly when the workflow cannot produce a grounded result.
+
+## Core Capabilities
+
+- User registration, login, and preference storage.
+- Study-session CRUD with persisted chat history.
+- Resource and syllabus upload support.
+- Asynchronous study-plan generation through job status records.
+- Server-sent progress events with polling fallback.
+- Bounded orchestrator workflow with specialist agent delegation.
+- Local resource search over uploaded/session content.
+- Repo-local methodology search for study techniques and schedule design.
+- Explicit failure states for unavailable Ollama, malformed agent output, invalid actions, retry exhaustion, and validation failures.
+
+## Architecture
+
+```text
+frontend/
+  Next.js app router pages and chat UI
+
+backend/
+  FastAPI application, auth/session routes, persistence, uploads, and planning services
+
+backend/app/services/study_plan_engine.py
+  Orchestrator runtime, specialist agents, JSON protocol parsing, validation, and Ollama adapter
+
+backend/app/services/job_store.py
+  Small file-backed job store for queued/running/succeeded/failed request state and progress events
+
+backend/app/services/resource_search.py
+  Local search over resources already attached to the session
+
+backend/app/services/methodology_search.py
+  Search over curated study-method notes in backend/app/knowledge/methodology/
 ```
+
+The backend keeps public API routes stable while moving long-running planning work behind a job interface. The frontend starts a chat generation job, subscribes to progress events, and falls back to polling if event streaming is unavailable.
+
+## Agent Workflow
+
+Study-plan generation is handled by `StudyPlanEngine`, which wraps a bounded `OrchestratorAgent`.
+
+The orchestrator can emit one JSON action at a time:
+
+- `delegate` - assign a task to a specialist agent.
+- `tool_call` - run an allowed backend search tool directly.
+- `approve` - approve a specialist result after validation.
+- `retry` - ask a specialist to revise its output with feedback.
+- `final` - produce the final answer after all required approvals.
+
+Specialist agents return structured JSON:
+
+```json
+{
+  "status": "succeeded",
+  "content": "agent output",
+  "evidence": [],
+  "warnings": [],
+  "needs_retry": false
+}
+```
+
+The required specialist stages are:
+
+- `strategy` - chooses study methods and learning approach using session context and methodology search.
+- `resources` - finds grounded resources from uploaded/session material.
+- `planner` - creates the day-by-day plan using constraints, strategy, resources, and planning heuristics.
+- `verifier` - checks schedule constraints, sections, and resource grounding.
+- `formatter` - prepares the final response for the chat UI.
+
+The workflow is intentionally bounded:
+
+- Maximum orchestrator steps: `12`
+- Maximum retries per specialist: `2`
+- Maximum tool calls per specialist run: `3`
+
+If those bounds are exceeded, the job fails with a stage-specific error rather than returning a generic plan.
+
+## Grounding and Validation
+
+LearnMate separates model decisions from backend validation.
+
+Specialist agents may request retrieval through approved tools, but the backend executes those tools and records the observations. This gives the model autonomy over what to ask for while keeping file access, search behavior, and validation under application control.
+
+The verifier and backend checks reject common failure modes:
+
+- Missing required study-plan sections.
+- Missing or extra day sections for the requested schedule.
+- Plans that ignore hour/day constraints.
+- Syllabus-only recommendations presented as study resources.
+- Resource claims that are not grounded in uploaded/session material.
+- Malformed JSON from the orchestrator or specialists.
+- Unknown actions, unknown tools, and empty agent outputs.
+
+## API Overview
+
+The main API prefix is `/api/v1`.
+
+Authentication:
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
+- `PUT /auth/preferences`
+
+Sessions:
+
+- `GET /sessions`
+- `POST /sessions`
+- `GET /sessions/{session_id}`
+- `PUT /sessions/{session_id}`
+- `DELETE /sessions/{session_id}`
+
+Resources and syllabus:
+
+- `POST /sessions/{session_id}/resources`
+- `DELETE /sessions/{session_id}/resources/{resource_id}`
+- `POST /sessions/{session_id}/syllabus`
+- `GET /sessions/{session_id}/resources/{resource_id}/download`
+
+Chat and planning:
+
+- `GET /sessions/{session_id}/chat`
+- `POST /sessions/{session_id}/chat/start`
+- `GET /sessions/{session_id}/chat/status/{request_id}`
+- `GET /sessions/{session_id}/chat/{request_id}/events`
+- `POST /sessions/{session_id}/chat`
+- `DELETE /sessions/{session_id}/chat`
+
+Health:
+
+- `GET /health`
+- `GET /api/v1/sessions/{session_id}/metrics`
+
+## Request Lifecycle
+
+1. The frontend posts a message to `POST /sessions/{session_id}/chat/start`.
+2. The backend creates one request record with status `queued`.
+3. The background task marks the request `running` and emits progress events.
+4. The orchestrator delegates specialist work and emits stage updates.
+5. The job finishes as `succeeded` with a final result or `failed` with an error object.
+6. The frontend renders the final assistant message or a clear failure card.
+
+Job states:
+
+- `queued`
+- `running`
+- `succeeded`
+- `failed`
+
+Planning stages:
+
+- `context`
+- `orchestrator`
+- `strategy`
+- `resources`
+- `planning`
+- `verification`
+- `formatting`
+
+## Configuration
+
+Configuration is environment-driven through `backend/app/core/config.py`.
+
+Common backend variables:
+
+```bash
+DATABASE_URL=sqlite:///./study_sessions.db
+SECRET_KEY=replace-this-for-deployment
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3:8b
+BACKEND_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+LEARNMATE_DATA_DIR=./data
+LEARNMATE_JOB_REQUEST_DIR=./data/chat_requests
+LEARNMATE_METRICS_PATH=./data/metrics/processing_metrics.jsonl
+LEARNMATE_UPLOAD_DIR=./uploads
+```
+
+SQLite is the default development database. `DATABASE_URL` can be changed for another SQLAlchemy-compatible database without changing route code.
+
+## Runtime Data
+
+The backend writes mutable runtime state to configured directories:
+
+- SQLite database files.
+- Uploaded resources and syllabi.
+- Generated chat request JSON.
+- Metrics JSONL files.
+
+These paths are ignored by git because they contain local user data or generated state. Deleting them is not required to run the app, and existing SQLite data remains readable across code changes.
+
+## Requirements
+
+- Python 3.12
+- Node.js 20+
+- npm
+- Ollama
+- Ollama model: `llama3:8b`
+
+## Backend Setup
+
+From the repository root:
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+ollama pull llama3:8b
+uvicorn app.main:app --reload
 ```
 
-### Run on Streamlit 
+The backend runs at `http://127.0.0.1:8000` by default.
+
+Check health:
+
+```bash
+curl http://127.0.0.1:8000/health
 ```
-streamlit run home.py
+
+## Frontend Setup
+
+In a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-## **AI-Powered Learning Assistant**
+Open `http://127.0.0.1:3000`.
 
-### **Team Name:** LearnMate
-### **Team Members:** 
-- Sebastian Perilla
-- Ismael Picazo
-- Farah Orfaly
-- Daniel Mora
-- Riley Martin
-- Noah Schiek
-- Andrés Taboada
+## Ollama
 
----
+The study-plan engine uses Ollama through the local HTTP API.
 
-## **Problem Statement**
+```bash
+ollama pull llama3:8b
+ollama run llama3:8b
+```
 
-Students often face difficulties finding reliable and personalized educational resources amidst the overwhelming amount of available content. Without effective guidance, many learners waste time navigating irrelevant or low-quality materials, which hampers their learning progress and motivation.
+Keep Ollama running while generating study plans.
 
----
+If Ollama is unavailable, study-plan jobs fail with an explicit `context` error. The app does not return a generic fallback plan as a successful result.
 
-## **Proposed Solution**
+## Testing
 
-LearnMate is an AI-powered solution that integrates:
-1. **Chatbot**: A conversational interface for students to specify topics, preferences, and learning goals.
-2. **Recommendation Engine**: A machine learning system offering personalized and curated educational resources, including books, videos, articles, and online courses.
+Backend unit tests, run from the repository root with the backend virtual environment active:
 
-LearnMate simplifies access to quality resources, enabling students to focus on learning rather than searching.
+```bash
+source backend/.venv/bin/activate
+python -m pytest tests/test_study_plan_engine.py tests/test_job_store.py
+```
 
----
+Frontend production build:
 
-## **Features**
+```bash
+cd frontend
+npm run build
+```
 
-### **Chatbot:**
-- User-friendly interface to engage users conversationally.
-- Interactive queries to refine and personalize recommendations.
-- Support for multiple languages to broaden accessibility.
+The backend tests cover orchestrator delegation, retries, malformed JSON, unknown actions/tools, resource search, methodology search, schedule validation, syllabus-as-resource rejection, and explicit Ollama-unavailable failure.
 
-### **Recommendation Engine:**
-- Collaborative filtering to suggest resources based on similar users’ preferences.
-- Content-based filtering to tailor suggestions based on user-specific inputs.
-- Categorized results for books, videos, articles, and online courses.
+## Design Notes
 
----
+The project favors a deterministic application boundary around model behavior:
 
-## **Data Sources**
+- The model decides which allowed action to take next.
+- The backend validates JSON shape, allowed tools, retry limits, stage transitions, and final plan requirements.
+- Search is exposed as a tool protocol, but file/resource access remains controlled by backend services.
+- Progress is visible through job events rather than hidden inside one long request.
+- Failures are part of the API contract, not silently converted into generic successful responses.
 
-To ensure a diverse and high-quality dataset, LearnMate will gather data from multiple sources, including:
-- **Kaggle**: Use pre-existing datasets such as educational video metadata, eBook collections, and course details.
-- **Open Educational Resources (OER)**: Collect freely available textbooks, articles, and academic materials.
-- **YouTube**: Scrape metadata for educational videos using APIs.
-- **Custom User Feedback**: Build a growing dataset through chatbot interactions and user-submitted preferences.
-
-Data preprocessing will include cleaning, deduplication, feature extraction, and standardization to ensure high-quality inputs for machine learning models.
-
----
-
-## **Technical Details**
-
-1. **Data Preparation**:
-   - Use Kaggle datasets to bootstrap the system with initial resources.
-   - Clean and preprocess data to handle missing values, normalize formats, and remove duplicates.
-   - Perform feature engineering to extract key attributes, such as resource difficulty level, category, and relevance.
-
-2. **Machine Learning Algorithms**:
-   - Implement hybrid recommendation techniques: collaborative filtering, content-based filtering, and ensemble methods.
-   - Use NLP models (e.g., BERT) for understanding user queries and matching resources effectively.
-
-3. **Deployment**:
-   - Host the application on a scalable cloud platform (e.g., AWS, GCP, or Azure).
-   - Develop a web-based frontend using Vue.js and connect it to the backend API built with FastAPI.
-   - Containerize services using Docker to ensure scalability and portability.
-
-4. **MLOps**:
-   - Automate testing and CI/CD pipelines to ensure continuous model updates and deployment.
-   - Monitor the application’s performance using tools like Prometheus and Grafana.
-   - Implement version control for models and dependencies to maintain reproducibility.
-
----
-
-## **Roles and Responsibilities**
-
-### **Product Manager (PM):**
-- Define the project vision, objectives, and milestones.
-- Serve as the point of communication between team members and stakeholders.
-- Oversee progress, resolve bottlenecks, and ensure alignment with deliverables.
-- Develop the business model and marketing strategy for LearnMate.
-
-### **Data Engineer(s):**
-- Collect data from Kaggle, OER, and APIs (YouTube, etc.).
-- Set up and maintain data pipelines for ingestion, transformation, and storage.
-- Handle data cleaning, feature engineering, and ensure data quality.
-- Ensure efficient and scalable data storage solutions (e.g., cloud storage or databases).
-
-### **Data Scientist(s):**
-- Analyze cleaned data to identify patterns and insights for feature extraction.
-- Develop and train machine learning models for recommendations (collaborative and content-based filtering).
-- Fine-tune NLP models to enhance chatbot interactions and improve resource matching.
-
-### **Machine Learning Engineer(s):**
-- Integrate machine learning models into the chatbot and recommendation system.
-- Optimize models for real-time performance and scalability.
-- Work with data scientists to implement ensemble techniques for hybrid recommendations.
-
-### **MLOps Engineer(s):**
-- Set up CI/CD pipelines for automated testing, deployment, and monitoring.
-- Implement model versioning and rollback capabilities to maintain stability.
-- Monitor system performance metrics, including latency, accuracy, and reliability.
-- Ensure automated retraining workflows for the recommendation engine based on new data.
-
-### **Frontend Developer(s):**
-- Design and build a responsive web interface using Vue.js.
-- Create an intuitive user experience for chatbot interactions and displaying recommendations.
-
-### **Backend Developer(s):**
-- Develop the backend API for handling user requests and serving recommendations.
-- Ensure secure and efficient data exchange between frontend and backend.
-
----
-
-## **Milestones**
-
-### **Week 1-3:**
-- Finalize the problem statement and objectives.
-- Gather data from Kaggle, OER, and APIs.
-- Set up data ingestion pipelines.
-- **Deliverable**: Initial dataset and a working pipeline for data collection.
-
-### **Week 4-6:**
-- Clean and preprocess the collected data.
-- Extract features and perform exploratory data analysis (EDA).
-- Begin development of the chatbot and recommendation engine.
-- **Deliverable**: Clean dataset and initial chatbot prototype.
-
-### **Week 7-9:**
-- Train and test recommendation models using K-fold cross-validation.
-- Integrate chatbot with recommendation engine for seamless interaction.
-- **Deliverable**: Functional chatbot integrated with a recommendation engine.
-
-### **Week 10-12:**
-- Deploy the application on a cloud platform.
-- Set up CI/CD pipelines and monitoring tools.
-- Conduct end-to-end testing for deployment readiness.
-- **Deliverable**: Fully deployed solution with automated monitoring and updates.
-
----
-
-## **Expected Outcome**
-
-A user-friendly chatbot and recommendation engine capable of delivering curated learning resources to students, enhancing their learning efficiency and productivity.
-
----
-
-## **Evaluation Metrics**
-
-- **Recommendation Relevance**: Accuracy of suggestions based on user feedback.
-- **Chatbot Performance**: Latency and NLP accuracy in handling user queries.
-- **User Satisfaction**: Feedback collected post-interaction.
-- **Scalability**: Ability to handle multiple users simultaneously without performance degradation.
+This structure makes the planning workflow easier to debug, test, and extend while preserving local-first execution with Ollama.
